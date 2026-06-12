@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Autopilot SRE Agent - New Relic Substrate MVP</title>
+  <title>New Relic Autopilot - Autonomous Operations Command Center</title>
   <meta name="description" content="Production-grade SRE Agent powered by New Relic's Substrate intelligence layer">
 
   <!-- React & Babel -->
@@ -15,7 +15,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
     * {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -35,14 +35,34 @@
     }
 
     /* Animations */
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
     @keyframes slideUp {
-      from { transform: translateY(100%); opacity: 0; }
+      from { transform: translateY(20px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
 
-    @keyframes slideDown {
-      from { transform: translateY(-20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    @keyframes slideRight {
+      from { transform: translateX(-20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 15px rgba(0, 172, 105, 0.3); }
+      50% { box-shadow: 0 0 25px rgba(0, 172, 105, 0.6); }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
     }
 
     @keyframes fadeIn {
@@ -50,93 +70,71 @@
       to { opacity: 1; }
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+    @keyframes progressBar {
+      from { width: 0%; }
+      to { width: 100%; }
     }
 
-    @keyframes flowPulse {
-      0% { stroke-dashoffset: 100; opacity: 0.3; }
-      50% { opacity: 1; }
-      100% { stroke-dashoffset: 0; opacity: 0.3; }
+    .animate-spin { animation: spin 1s linear infinite; }
+    .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    .animate-slideUp { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .animate-slideRight { animation: slideRight 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .animate-glow { animation: glow 2s ease-in-out infinite; }
+    .animate-bounce { animation: bounce 0.6s ease-in-out 3; }
+    .animate-fadeIn { animation: fadeIn 0.5s ease-out; }
+
+    /* Glassmorphism */
+    .glass {
+      background: rgba(9, 15, 12, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
+    /* Code Diff */
+    .diff-add {
+      background: rgba(0, 172, 105, 0.15);
+      border-left: 3px solid #00AC69;
     }
 
-    .slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-    .slide-down { animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-    .fade-in { animation: fadeIn 0.3s ease-out; }
-    .pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-    .bounce { animation: bounce 0.5s ease-in-out 3; }
-
-    /* DAG Styling */
-    .dag-node {
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.3));
-    }
-    .dag-node:hover {
-      transform: scale(1.08);
-      filter: drop-shadow(0 0 16px rgba(6, 182, 212, 0.6));
+    .diff-remove {
+      background: rgba(239, 68, 68, 0.15);
+      border-left: 3px solid #ef4444;
     }
 
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #060A08;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #1b2e24;
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #2a4636;
+    }
+
+    /* DAG Edges */
     .dag-edge {
       stroke-dasharray: 8, 4;
       animation: flowPulse 2s linear infinite;
     }
 
-    /* Tree Node Styling */
-    .tree-node {
-      cursor: pointer;
-      transition: background 0.15s ease;
-    }
-    .tree-node:hover {
-      background: rgba(255, 255, 255, 0.05);
+    @keyframes flowPulse {
+      0% { stroke-dashoffset: 12; opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: 0.4; }
     }
 
-    /* Code Diff Styling */
-    .diff-line-add {
-      background: rgba(34, 197, 94, 0.1);
-      border-left: 3px solid rgb(34, 197, 94);
-    }
-
-    /* Scrollbar Styling */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0a0a0a;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #333;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #444;
-    }
-
-    /* Modal Backdrop */
-    .modal-backdrop {
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(4px);
-    }
-
-    /* Topology Graph Styles */
-    .topology-node {
-      transition: all 0.2s ease;
-    }
-    .topology-node:hover {
-      filter: brightness(1.3);
-    }
-
-    /* Focus Styles for Accessibility */
-    *:focus-visible {
-      outline: 2px solid #06b6d4;
-      outline-offset: 2px;
+    /* Progress bar animation */
+    .progress-animate {
+      transition: width 1s ease-out;
     }
   </style>
 </head>
@@ -146,1185 +144,719 @@
   <script type="text/babel">
     const { useState, useEffect, useReducer } = React;
 
-    // ==================== STATE MANAGEMENT ====================
+    // ==================== ICONS ====================
+    const Icons = {
+      Check: ({ className = "w-4 h-4" }) => (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      ),
+      Loader: ({ className = "w-4 h-4" }) => (
+        <svg className={`${className} animate-spin`} fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      ),
+      Alert: ({ className = "w-4 h-4" }) => (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      ),
+      ChevronRight: ({ className = "w-4 h-4" }) => (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      ),
+      ChevronDown: ({ className = "w-4 h-4" }) => (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      ),
+      Play: ({ className = "w-4 h-4" }) => (
+        <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+      ),
+      Database: ({ className = "w-4 h-4" }) => (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+        </svg>
+      ),
+      Code: ({ className = "w-4 h-4" }) => (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+        </svg>
+      ),
+      GitCommit: ({ className = "w-4 h-4" }) => (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <circle cx="12" cy="12" r="3" strokeWidth={2} />
+          <line x1="3" y1="12" x2="9" y2="12" strokeWidth={2} />
+          <line x1="15" y1="12" x2="21" y2="12" strokeWidth={2} />
+        </svg>
+      ),
+      Lock: ({ className = "w-4 h-4" }) => (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      ),
+      Zap: ({ className = "w-4 h-4" }) => (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      ),
+    };
 
+    // ==================== STATE MANAGEMENT ====================
     const initialState = {
-      phase: 'welcome',
-      showDictionary: false,
-      expandedTreeNode: null,
-      executing: false,
+      phase: 'detection', // detection -> analysis -> coach -> execution -> success
+      url: 'https://one.newrelic.com/launcher/autopilot/triage?account=14092&incident=none',
+      executionTree: [],
+      showHistoricalIncident: false,
+      showPatternCorpus: false,
       executionProgress: 0,
-      showMicDrop: false,
-      selectedDAGNode: null,
-      selectedTopologyNode: null,
-      historicalIncidentOpen: false,
-      loading: false,
+      countdownTimer: 30,
+      showTerminal: false,
     };
 
     function appReducer(state, action) {
       switch (action.type) {
-        case 'SET_PHASE':
-          return { ...state, phase: action.payload, loading: false };
-        case 'SET_LOADING':
-          return { ...state, loading: action.payload };
-        case 'TOGGLE_DICTIONARY':
-          return { ...state, showDictionary: action.payload };
-        case 'TOGGLE_TREE_NODE':
-          return { ...state, expandedTreeNode: state.expandedTreeNode === action.payload ? null : action.payload };
+        case 'START_INVESTIGATION':
+          return {
+            ...state,
+            phase: 'analysis',
+            url: 'https://one.newrelic.com/launcher/autopilot/substrate_analysis?account=14092&target=checkout-api',
+            executionTree: [
+              { id: 1, text: 'Querying 14,240 distributed spans across multicluster workloads...', status: 'loading', delay: 0 },
+              { id: 2, text: 'Isolating confounding infrastructure layers via Peter-Clark skeleton pruning...', status: 'pending', delay: 3000 },
+              { id: 3, text: 'Orienting unshielded colliders to establish causal direction...', status: 'pending', delay: 6000 },
+              { id: 4, text: 'Normalizing custom telemetry tags to OpenTelemetry schema...', status: 'pending', delay: 9000 },
+              { id: 5, text: 'Cross-referencing Incident Knowledge Base (92% match found)...', status: 'pending', delay: 12000 },
+              { id: 6, text: 'Compiling Causal Proof Chain and remediation options...', status: 'pending', delay: 15000 },
+            ]
+          };
+
+        case 'UPDATE_TREE_NODE':
+          return {
+            ...state,
+            executionTree: state.executionTree.map(node =>
+              node.id === action.payload.id ? { ...node, status: action.payload.status } : node
+            )
+          };
+
+        case 'SHOW_COACH':
+          return {
+            ...state,
+            phase: 'coach',
+            url: 'https://one.newrelic.com/launcher/autopilot/coach_review?account=14092&issue=INC-9824&pane=active'
+          };
+
+        case 'TOGGLE_HISTORICAL':
+          return { ...state, showHistoricalIncident: !state.showHistoricalIncident };
+
+        case 'TOGGLE_PATTERN_CORPUS':
+          return { ...state, showPatternCorpus: !state.showPatternCorpus };
+
         case 'START_EXECUTION':
-          return { ...state, executing: true, phase: 'execution' };
+          return {
+            ...state,
+            phase: 'execution',
+            url: 'https://one.newrelic.com/launcher/autopilot/remediation_runtime?account=14092&task=scale_and_index',
+            showTerminal: true,
+            executionProgress: 0
+          };
+
         case 'UPDATE_PROGRESS':
           return { ...state, executionProgress: action.payload };
+
+        case 'START_COUNTDOWN':
+          return { ...state, countdownTimer: 30 };
+
+        case 'TICK_COUNTDOWN':
+          return { ...state, countdownTimer: Math.max(0, state.countdownTimer - 1) };
+
         case 'SHOW_SUCCESS':
-          return { ...state, phase: 'success', showMicDrop: true };
-        case 'SELECT_DAG_NODE':
-          return { ...state, selectedDAGNode: action.payload };
-        case 'SELECT_TOPOLOGY_NODE':
-          return { ...state, selectedTopologyNode: action.payload };
-        case 'TOGGLE_HISTORICAL':
-          return { ...state, historicalIncidentOpen: action.payload };
+          return {
+            ...state,
+            phase: 'success',
+            url: 'https://one.newrelic.com/launcher/autopilot/verified_outcome?account=14092&status=success'
+          };
+
         default:
           return state;
       }
     }
 
-    // ==================== MOCK DATA ====================
-
-    const executionTree = [
-      {
-        id: 1,
-        name: 'Query Entity Graph',
-        time: '120ms',
-        status: 'complete',
-        timestamp: '10:24:48.120',
-        metadata: {
-          target: 'checkout-api',
-          entity_guid: 'MXxBUE18QVBQTElDQVRJT058MTIzNDU2',
-          depth: 2,
-          nodes_found: 12,
-          topology: 'checkout-api → sessions-db → replica-pool',
-        }
-      },
-      {
-        id: 2,
-        name: 'Parse APM Traces',
-        time: '340ms',
-        timestamp: '10:24:48.460',
-        status: 'complete',
-        metadata: {
-          trace_id: '7f8a9b2c4e6d1a3f9e5c8d7b6a4f2e1c',
-          span_id: '9c8b7a6e5d4c3b2a',
-          trace_count: 1432,
-          slow_spans: 24,
-          span_analysis: 'detected_n+1_pattern',
-          primary_span: 'checkout-api.db.sessions.query',
-          span_duration: '4.2s',
-          query: 'SELECT * FROM sessions WHERE user_id IN (...)',
-        }
-      },
-      {
-        id: 3,
-        name: 'Read DB Logs',
-        time: '180ms',
-        timestamp: '10:24:48.640',
-        status: 'complete',
-        metadata: {
-          log_lines: 5421,
-          error_signature: 'PG::LockTimeout',
-          error_count: 87,
-          sql_excerpt: 'Seq Scan on sessions (cost=1542.32..8921.54 rows=42341 width=512)',
-          missing_index: 'composite index on (user_id, last_active)',
-        }
-      },
-      {
-        id: 4,
-        name: 'Query Causal Graph',
-        time: '95ms',
-        timestamp: '10:24:48.735',
-        status: 'complete',
-        metadata: {
-          graph_depth: 3,
-          causal_confidence: 0.94,
-          edges_evaluated: 18,
-          root_cause: 'N+1 query pattern in sessions lookup',
-          propagation_path: 'HTTP 500 ← API timeout ← DB lock ← N+1 query',
-        }
-      },
-      {
-        id: 5,
-        name: 'Search Knowledge Base',
-        time: '210ms',
-        timestamp: '10:24:48.945',
-        status: 'complete',
-        metadata: {
-          matched_incident: 'RETRO-INC-4512',
-          similarity: 0.92,
-          incident_date: '2025-12-15',
-          resolution: 'Added composite index on sessions table',
-          effectiveness: '94% success rate in similar scenarios',
-        }
-      },
-    ];
-
-    const traceData = {
-      trace_id: '7f8a9b2c4e6d1a3f9e5c8d7b6a4f2e1c',
-      total_duration: 4237,
-      spans: [
-        { name: 'checkout-api.http.request', duration: 4237, start: 0, service: 'checkout-api' },
-        { name: 'checkout-api.db.sessions.query', duration: 4180, start: 42, service: 'checkout-api', error: true },
-        { name: 'sessions-db.query.execute', duration: 4120, start: 84, service: 'sessions-db', error: true },
-      ],
-    };
-
-    // ==================== MAIN APP COMPONENT ====================
-
-    function AutopilotSRE() {
-      const [state, dispatch] = useReducer(appReducer, initialState);
-      const { phase, showDictionary, expandedTreeNode, executing, executionProgress, showMicDrop,
-              selectedDAGNode, selectedTopologyNode, historicalIncidentOpen, loading } = state;
-
-      // Execution progress simulation
-      useEffect(() => {
-        if (executing && executionProgress < 100) {
-          const timer = setTimeout(() => {
-            dispatch({ type: 'UPDATE_PROGRESS', payload: Math.min(executionProgress + 6.67, 100) });
-          }, 1000);
-          return () => clearTimeout(timer);
-        }
-        if (executionProgress >= 100 && executing) {
-          setTimeout(() => {
-            dispatch({ type: 'SHOW_SUCCESS' });
-          }, 500);
-        }
-      }, [executing, executionProgress]);
-
-      // Auto-show dictionary after triage starts
-      useEffect(() => {
-        if (phase === 'triage') {
-          dispatch({ type: 'SET_LOADING', payload: true });
-          const timer = setTimeout(() => dispatch({ type: 'TOGGLE_DICTIONARY', payload: true }), 1500);
-          const timer2 = setTimeout(() => dispatch({ type: 'SET_PHASE', payload: 'coach' }), 4000);
-          return () => { clearTimeout(timer); clearTimeout(timer2); };
-        }
-      }, [phase]);
-
-      // Keyboard shortcuts
-      useEffect(() => {
-        const handleKeyPress = (e) => {
-          if (e.key === 'Escape') {
-            dispatch({ type: 'SELECT_DAG_NODE', payload: null });
-            dispatch({ type: 'SELECT_TOPOLOGY_NODE', payload: null });
-            dispatch({ type: 'TOGGLE_HISTORICAL', payload: false });
-          }
-          if (e.key === 'a' || e.key === 'A') {
-            if (phase === 'coach') {
-              handleApprove();
-            }
-          }
-          if (e.key === 'i' || e.key === 'I') {
-            if (phase === 'welcome') {
-              handleInvestigate();
-            }
-          }
-        };
-        window.addEventListener('keydown', handleKeyPress);
-        return () => window.removeEventListener('keydown', handleKeyPress);
-      }, [phase]);
-
-      // Auto-dismiss dictionary
-      useEffect(() => {
-        if (showDictionary) {
-          const timer = setTimeout(() => dispatch({ type: 'TOGGLE_DICTIONARY', payload: false }), 8000);
-          return () => clearTimeout(timer);
-        }
-      }, [showDictionary]);
-
-      const handleInvestigate = () => {
-        dispatch({ type: 'SET_PHASE', payload: 'triage' });
-      };
-
-      const handleApprove = () => {
-        dispatch({ type: 'START_EXECUTION' });
-      };
-
-      const executionSteps = [
-        { progress: 10, time: '[10:25:12]', text: 'kubectl exec -n production checkout-db -- psql -c "CREATE INDEX CONCURRENTLY..."', color: 'text-gray-400' },
-        { progress: 20, time: '[10:25:13]', text: '▸ Applying YAML configuration...', color: 'text-blue-400' },
-        { progress: 35, time: '[10:25:14]', text: 'Guardrails Gateway: verified target constraints. [AUTHORIZED]', color: 'text-gray-500' },
-        { progress: 50, time: '[10:25:16]', text: '▸ Verifying connection pooling...', color: 'text-cyan-400' },
-        { progress: 60, time: '[10:25:19]', text: 'Building index concurrently... 45% complete', color: 'text-blue-400' },
-        { progress: 70, time: '[10:25:22]', text: 'SUCCESS. Index curr_idx_composite created.', color: 'text-green-400' },
-        { progress: 85, time: '[10:25:25]', text: '▸ Apdex baseline recovered (0.42 → 0.98)', color: 'text-green-400' },
-        { progress: 100, time: '[10:26:01]', text: '» SLO VALIDATION COMPLETE', color: 'text-green-500 font-bold' },
-      ];
-
+    // ==================== URL BAR COMPONENT ====================
+    function URLBar({ url }) {
       return (
-        <div className="h-screen w-screen flex flex-col bg-[#060A08] text-gray-200 overflow-hidden">
-          {/* Header */}
-          <Header phase={phase} />
-
-          {/* Main Content */}
-          <div className="flex flex-1 overflow-hidden">
-            {/* Phase Navigation Sidebar */}
-            {phase !== 'welcome' && <PhaseNavigation phase={phase} dispatch={dispatch} />}
-
-            {/* LEFT: Conversational Triage (35%) */}
-            <TriagePanel
-              phase={phase}
-              showDictionary={showDictionary}
-              showMicDrop={showMicDrop}
-              handleInvestigate={handleInvestigate}
-              dispatch={dispatch}
-            />
-
-            {/* RIGHT: Coach UI (65%) */}
-            <CoachPanel
-              phase={phase}
-              executionTree={executionTree}
-              expandedTreeNode={expandedTreeNode}
-              executionProgress={executionProgress}
-              executing={executing}
-              executionSteps={executionSteps}
-              handleApprove={handleApprove}
-              dispatch={dispatch}
-              loading={loading}
-            />
+        <div className="h-10 bg-[#090F0C] border-b border-slate-700/50 px-4 flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+            <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+            <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
           </div>
-
-          {/* Modals */}
-          {selectedDAGNode && <DAGNodeModal node={selectedDAGNode} onClose={() => dispatch({ type: 'SELECT_DAG_NODE', payload: null })} />}
-          {selectedTopologyNode && <TopologyNodeModal node={selectedTopologyNode} onClose={() => dispatch({ type: 'SELECT_TOPOLOGY_NODE', payload: null })} />}
-          {historicalIncidentOpen && <HistoricalIncidentModal onClose={() => dispatch({ type: 'TOGGLE_HISTORICAL', payload: false })} />}
+          <div className="flex-1 bg-[#060A08] rounded px-3 py-1.5 flex items-center gap-2 border border-slate-700/30">
+            <Icons.Lock className="w-3 h-3 text-emerald-400" />
+            <span className="text-[11px] font-mono text-slate-400 truncate">{url}</span>
+          </div>
         </div>
       );
     }
 
-    // ==================== SUB-COMPONENTS ====================
-
-    function Header({ phase }) {
+    // ==================== DETECTION PHASE ====================
+    function DetectionPhase({ onInvestigate }) {
       return (
-        <header className="h-14 bg-[#090F0C] border-b border-gray-800 flex items-center justify-between px-6 shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-800 rounded flex items-center justify-center">
-              <span className="text-white font-bold text-sm">NR</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-xs uppercase tracking-wider text-white">Autopilot SRE Agent</span>
-              <span className="text-[10px] text-gray-500">Substrate v2026.09 • Production</span>
-            </div>
-          </div>
-          {phase !== 'welcome' && (
-            <div className="flex items-center gap-3 fade-in">
-              <div className="flex items-center gap-2 bg-[#1a1a1a] px-3 py-1.5 rounded border border-blue-500/30">
-                <div className="w-2 h-2 rounded-full bg-blue-500 pulse"></div>
-                <span className="text-[10px] font-mono text-blue-400 uppercase tracking-tight">Substrate Active</span>
-              </div>
-              <div className="h-4 w-[1px] bg-gray-700"></div>
-              <div className="text-[10px] text-gray-400 flex items-center gap-2">
-                <span className="opacity-60">AMG:</span>
-                <span className="text-green-500 font-bold">AUTHORIZED</span>
-              </div>
-            </div>
-          )}
-        </header>
-      );
-    }
-
-    function PhaseNavigation({ phase, dispatch }) {
-      const phases = [
-        { id: 'triage', label: 'Triage', icon: '🔍' },
-        { id: 'coach', label: 'Analysis', icon: '🧠' },
-        { id: 'execution', label: 'Execution', icon: '⚡' },
-        { id: 'success', label: 'Verification', icon: '✓' },
-      ];
-
-      const currentIndex = phases.findIndex(p => p.id === phase);
-
-      return (
-        <div className="w-16 bg-[#0a0a0a] border-r border-gray-800 flex flex-col items-center py-6 gap-4">
-          {phases.map((p, idx) => {
-            const isComplete = idx < currentIndex;
-            const isCurrent = p.id === phase;
-            const isUpcoming = idx > currentIndex;
-
-            return (
-              <button
-                key={p.id}
-                onClick={() => isComplete && dispatch({ type: 'SET_PHASE', payload: p.id })}
-                disabled={isUpcoming}
-                className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg transition-all ${
-                  isCurrent ? 'bg-blue-600 ring-2 ring-blue-400' :
-                  isComplete ? 'bg-green-900/30 hover:bg-green-900/50 cursor-pointer' :
-                  'bg-gray-900 opacity-30 cursor-not-allowed'
-                }`}
-                title={p.label}
-              >
-                {isComplete ? '✓' : p.icon}
-              </button>
-            );
-          })}
-        </div>
-      );
-    }
-
-    function TriagePanel({ phase, showDictionary, showMicDrop, handleInvestigate, dispatch }) {
-      return (
-        <main className="w-[35%] border-r border-gray-800 flex flex-col overflow-hidden bg-[#050505]">
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            {phase === 'welcome' && <WelcomeView handleInvestigate={handleInvestigate} />}
-            {(phase === 'triage' || phase === 'coach' || phase === 'execution' || phase === 'success') && (
-              <ConversationView
-                phase={phase}
-                showDictionary={showDictionary}
-                showMicDrop={showMicDrop}
-                dispatch={dispatch}
-              />
-            )}
-          </div>
-
-          {/* Bottom Input */}
-          <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] shrink-0">
-            <div className="relative flex items-center bg-[#050505] border border-gray-800 rounded p-1.5">
-              <div className="w-5 h-5 bg-[#111] border border-gray-700 rounded text-[10px] flex items-center justify-center text-gray-500 ml-1 shrink-0">/</div>
-              <input
-                type="text"
-                placeholder={phase === 'welcome' ? 'Ask about reasoning, context, or next steps...' : 'Ask follow-up questions...'}
-                className="bg-transparent border-none outline-none text-xs w-full px-2 py-1 placeholder:text-gray-600 text-gray-300"
-              />
-            </div>
-          </div>
-        </main>
-      );
-    }
-
-    function WelcomeView({ handleInvestigate }) {
-      return (
-        <div className="space-y-4 fade-in">
-          {/* OTel Welcome Box */}
-          <div className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-blue-500/30 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-white mb-1">OpenTelemetry Context Initialized</h3>
-                <p className="text-xs text-gray-400 leading-relaxed">
-                  Your observability data is unified via OTel standards. Substrate will translate custom attributes into canonical schemas for deterministic reasoning.
-                </p>
-                <div className="mt-2 text-[10px] text-gray-500 font-mono">
-                  Coverage: 87% instrumented • Schema: v1.20.0
+        <div className="h-full flex items-center justify-center p-8">
+          <div className="max-w-4xl w-full animate-slideUp">
+            {/* Alert Banner */}
+            <div className="glass border border-red-900/50 rounded-lg p-6 mb-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-lg bg-red-950/50 flex items-center justify-center shrink-0 animate-glow">
+                  <Icons.Alert className="w-6 h-6 text-red-400" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="px-2 py-0.5 bg-red-950 text-red-400 text-[10px] font-bold rounded uppercase tracking-wide">Critical</span>
+                    <h2 className="text-xl font-semibold text-white">P95 Latency Anomaly: checkout-api</h2>
+                  </div>
+                  <div className="text-sm text-slate-400 mb-3">
+                    <span className="font-mono text-red-400">4,220ms</span> P95 latency detected (baseline: <span className="font-mono text-emerald-400">120ms</span>) •
+                    <span className="font-mono text-yellow-400 ml-1">25% error rate</span> •
+                    <span className="ml-1">1.2M users impacted</span>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Severe response time degradation detected on downstream checkout-api service.
+                    Substrate topology analysis indicates upstream dependency chain disruption with
+                    connection pool exhaustion markers.
+                  </p>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Incident Alert */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 bg-red-950 text-red-500 text-[10px] font-bold rounded">CRITICAL</span>
-              <h2 className="text-lg font-semibold text-white">P95 Latency Spike: checkout-api</h2>
-            </div>
-            <div className="text-xs text-gray-400 font-mono">Impact: 1.2M users • Duration: 4m 12s</div>
-            <div className="grid grid-cols-3 gap-2 mt-2">
-              <div className="bg-[#111] border border-gray-800 rounded p-2">
-                <div className="text-[10px] text-gray-500 uppercase">Error Rate</div>
-                <div className="text-red-400 font-bold">23%</div>
+            {/* Metrics Cards */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="glass border border-slate-700/50 rounded-lg p-4">
+                <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Error Rate</div>
+                <div className="text-2xl font-bold text-red-400 font-mono">23%</div>
+                <div className="text-[10px] text-slate-600 mt-1">↑ 18.7% from baseline</div>
               </div>
-              <div className="bg-[#111] border border-gray-800 rounded p-2">
-                <div className="text-[10px] text-gray-500 uppercase">Revenue Risk</div>
-                <div className="text-amber-400 font-bold">$450K/hr</div>
+              <div className="glass border border-slate-700/50 rounded-lg p-4">
+                <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Revenue Impact</div>
+                <div className="text-2xl font-bold text-yellow-400 font-mono">$450K/hr</div>
+                <div className="text-[10px] text-slate-600 mt-1">Estimated lost revenue</div>
               </div>
-              <div className="bg-[#111] border border-gray-800 rounded p-2">
-                <div className="text-[10px] text-gray-500 uppercase">Apdex</div>
-                <div className="text-red-400 font-bold">0.98 → 0.42</div>
+              <div className="glass border border-slate-700/50 rounded-lg p-4">
+                <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Apdex Score</div>
+                <div className="text-2xl font-bold text-orange-400 font-mono">0.98 → 0.42</div>
+                <div className="text-[10px] text-slate-600 mt-1">57% degradation</div>
               </div>
             </div>
-            <p className="text-xs text-gray-400 mt-2">
-              P95 latency spiking to 4.2s. Substrate topology analysis detects upstream DB dependency chain with connection pool exhaustion.
-            </p>
-          </div>
 
-          {/* CTA Button */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Dynamic Input</label>
+            {/* OTel Context Notice */}
+            <div className="glass border border-cyan-900/30 rounded-lg p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <Icons.Database className="w-5 h-5 text-cyan-400" />
+                <div className="flex-1">
+                  <div className="text-xs font-semibold text-cyan-400 mb-1">OpenTelemetry Context Initialized</div>
+                  <div className="text-[11px] text-slate-400">
+                    Your observability data is unified via OTel standards. Substrate will translate custom attributes
+                    into canonical schemas for deterministic reasoning.
+                  </div>
+                  <div className="text-[10px] text-slate-600 mt-1 font-mono">
+                    Coverage: 87% instrumented • Schemas: v1.24.0
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Button */}
             <button
-              onClick={handleInvestigate}
-              className="w-full text-left bg-[#0a0a0a] hover:bg-[#111] border border-gray-800 hover:border-blue-500/50 p-3 rounded text-xs text-gray-300 transition-all flex items-center gap-2 group"
-              aria-label="Investigate root cause and show evidence"
+              onClick={onInvestigate}
+              className="w-full bg-[#00AC69] hover:bg-[#00AC69]/90 text-white font-semibold py-4 rounded-lg transition-all flex items-center justify-center gap-3 group"
             >
-              <span>🔍</span>
+              <Icons.Zap className="w-5 h-5" />
               <span>Investigate checkout-api latency spike and show root cause evidence</span>
-              <span className="ml-auto text-[9px] text-gray-600 font-mono opacity-0 group-hover:opacity-100 transition-opacity">Press I</span>
+              <Icons.ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
         </div>
       );
     }
 
-    function ConversationView({ phase, showDictionary, showMicDrop, dispatch }) {
+    // ==================== EXECUTION TREE (LEFT PANE) ====================
+    function ExecutionTree({ nodes }) {
       return (
-        <div className="space-y-4">
-          {/* User Query */}
-          <div className="flex items-start gap-3 flex-row-reverse fade-in">
-            <div className="w-7 h-7 rounded bg-gray-800 border border-gray-700 flex items-center justify-center shrink-0">
-              <span className="text-[9px] font-bold text-gray-400">YOU</span>
-            </div>
-            <div className="bg-[#111] px-3 py-2 rounded text-xs text-gray-300 border border-gray-800 max-w-[85%]">
-              Investigate checkout-api latency spike and show root cause evidence
-            </div>
+        <div className="h-full border-r border-slate-700/50 bg-[#090F0C] flex flex-col">
+          <div className="px-4 py-3 border-b border-slate-700/50">
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Agent Execution Trace</div>
           </div>
-
-          {/* Typing Indicator */}
-          {phase === 'triage' && (
-            <div className="flex items-start gap-3 fade-in">
-              <div className="w-7 h-7 rounded bg-blue-900/30 border border-blue-500/30 flex items-center justify-center shrink-0">
-                <div className="flex gap-0.5">
-                  <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce"></div>
-                  <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                  <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {nodes.map((node, idx) => (
+              <div key={node.id} className="animate-slideRight" style={{ animationDelay: `${idx * 0.1}s` }}>
+                <div className="flex items-start gap-3 p-3 rounded-lg glass border border-slate-700/30">
+                  <div className="shrink-0 mt-0.5">
+                    {node.status === 'loading' && <Icons.Loader className="w-4 h-4 text-cyan-400" />}
+                    {node.status === 'complete' && <Icons.Check className="w-4 h-4 text-emerald-400" />}
+                    {node.status === 'pending' && <div className="w-4 h-4 rounded-full border-2 border-slate-700"></div>}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className={`text-xs leading-relaxed ${node.status === 'complete' ? 'text-slate-400' : node.status === 'loading' ? 'text-cyan-400' : 'text-slate-600'}`}>
+                      {node.text}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="text-xs text-gray-400 italic">Querying Substrate and analyzing telemetry...</div>
-            </div>
-          )}
-
-          {/* Data Dictionary Alert */}
-          {showDictionary && phase === 'triage' && (
-            <div className="slide-down bg-cyan-900/10 border-2 border-cyan-500/40 rounded-lg p-3 flex items-start gap-3">
-              <span className="text-2xl">💡</span>
-              <div>
-                <h4 className="text-xs font-bold text-cyan-400 mb-1">Substrate Semantic Normalization</h4>
-                <div className="text-[11px] text-cyan-200 leading-relaxed space-y-1">
-                  <div>Translated custom key <code className="bg-black/40 px-1 py-0.5 rounded font-mono">txn_id</code> → <code className="bg-black/40 px-1 py-0.5 rounded font-mono text-green-400">trace.id</code></div>
-                  <div>Translated <code className="bg-black/40 px-1 py-0.5 rounded font-mono">req_id</code> → <code className="bg-black/40 px-1 py-0.5 rounded font-mono text-green-400">span.id</code></div>
-                  <div>Translated <code className="bg-black/40 px-1 py-0.5 rounded font-mono">usr</code> → <code className="bg-black/40 px-1 py-0.5 rounded font-mono text-green-400">user.id</code></div>
-                  <div className="text-cyan-500 font-bold mt-2">Match confidence: 100% deterministic</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Agent Response */}
-          {(phase === 'coach' || phase === 'execution' || phase === 'success') && (
-            <div className="flex items-start gap-3 fade-in">
-              <div className="w-7 h-7 rounded bg-blue-900/30 border border-blue-500/30 flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="space-y-2 max-w-[90%]">
-                <div className="bg-[#0a0a0a] px-4 py-3 rounded text-xs text-gray-300 border border-gray-800 leading-relaxed">
-                  I queried the <span className="text-blue-400 font-semibold">Causal Graph</span>. Root cause identified in:
-                  <br /><br />
-                  <div className="bg-black/50 border border-gray-800 rounded p-2 font-mono text-[10px] space-y-1">
-                    <div><span className="text-gray-500">trace.id:</span> <span className="text-cyan-400">7f8a9b2c4e6d1a3f9e5c8d7b6a4f2e1c</span></div>
-                    <div><span className="text-gray-500">span:</span> <span className="text-amber-400">checkout-api.db.sessions.query</span> <span className="text-red-400">(4.2s)</span></div>
-                    <div><span className="text-gray-500">entity:</span> <span className="text-blue-400">checkout-api</span> <span className="text-gray-600">(MXxBUE18QVBQTElDQVRJT058MTIzNDU2)</span></div>
-                  </div>
-                  <br />
-                  Cross-referenced <span className="text-purple-400 font-semibold">Incident Knowledge Base</span>: 92% match to historical N+1 pattern.
-                  Sending Proof Chain and remediation to Coach UI →
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Success Mic Drop */}
-          {phase === 'success' && showMicDrop && (
-            <div className="slide-up bg-green-500/5 border-2 border-green-500/40 rounded-lg p-4 flex items-start gap-3">
-              <svg className="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <h3 className="text-xs font-bold text-green-400 uppercase tracking-wider mb-1 flex items-center gap-2">
-                  <span>🎤 Resolution Applied</span>
-                </h3>
-                <p className="text-xs text-gray-300 leading-tight space-y-1">
-                  <div><strong>SLOs stabilized.</strong> P95 latency: <span className="line-through text-red-400">4.2s</span> → <strong className="text-green-400">120ms</strong> (97% improvement)</div>
-                  <div>MTTR: <strong className="text-green-400">7m 42s</strong> (vs team avg: 45m)</div>
-                  <div className="flex items-center gap-2">
-                    <span>Reinforcement Learning Engine issued</span>
-                    <span className="text-green-400 font-bold bounce">+0.03 reward</span>
-                    <span className="text-[10px] text-green-500 animate-pulse">✓</span>
-                  </div>
-                  <div>Causal Graph edge upgraded: <span className="font-mono text-gray-400">0.88</span> → <span className="font-mono text-cyan-400 font-bold">0.91</span></div>
-                  <div className="text-gray-500 text-[10px] mt-2 flex items-center gap-1">
-                    <span className="text-green-500">●</span>
-                    30-day SLO monitoring enabled
-                  </div>
-                </p>
-              </div>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
       );
     }
 
-    function CoachPanel({ phase, executionTree, expandedTreeNode, executionProgress, executing, executionSteps, handleApprove, dispatch, loading }) {
-      if (phase === 'welcome' || phase === 'triage') {
+    // ==================== CAUSAL CANVAS (CENTER PANE) ====================
+    function CausalCanvas({ phase, onToggleHistorical, onTogglePattern }) {
+      if (phase === 'analysis' || phase === 'coach' || phase === 'execution' || phase === 'success') {
         return (
-          <aside className="flex-1 bg-[#050505] flex items-center justify-center">
-            <div className="text-center text-gray-600">
-              {loading ? (
-                <>
-                  <div className="w-12 h-12 mx-auto mb-4 border-4 border-gray-800 border-t-cyan-500 rounded-full animate-spin"></div>
-                  <p className="text-sm text-cyan-400 font-bold">Analyzing Causal Graph...</p>
-                  <p className="text-xs mt-1 text-gray-500">Building proof chain</p>
-                </>
-              ) : (
-                <>
-                  <svg className="w-16 h-16 mx-auto mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <p className="text-sm">Root Cause Analysis & Remediation</p>
-                  <p className="text-xs mt-1">Will appear after investigation starts</p>
-                </>
-              )}
+          <div className="h-full bg-[#060A08] flex flex-col">
+            <div className="px-6 py-3 border-b border-slate-700/50">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Causal Proof Chain</div>
             </div>
-          </aside>
-        );
-      }
 
-      if (phase === 'coach') {
-        return (
-          <aside className="flex-1 bg-[#050505] p-6 overflow-y-auto fade-in">
-            <CoachUIContent
-              executionTree={executionTree}
-              expandedTreeNode={expandedTreeNode}
-              handleApprove={handleApprove}
-              dispatch={dispatch}
-            />
-          </aside>
-        );
-      }
+            <div className="flex-1 overflow-y-auto p-6">
+              {/* Schema Normalization Banner */}
+              <div className="mb-6 p-4 rounded-lg glass border border-cyan-900/30 animate-fadeIn">
+                <div className="flex items-center gap-2 mb-2">
+                  <Icons.Code className="w-4 h-4 text-cyan-400" />
+                  <div className="text-xs font-semibold text-cyan-400">Substrate Schema Normalization</div>
+                </div>
+                <div className="space-y-1 text-[11px] font-mono text-slate-400">
+                  <div>✓ Translated <span className="text-yellow-400">custom_txn_id</span> → <span className="text-emerald-400">trace.id</span></div>
+                  <div>✓ Translated <span className="text-yellow-400">req_routing_hash</span> → <span className="text-emerald-400">span.id</span></div>
+                  <div className="text-[10px] text-slate-600 mt-1">Match confidence: 100% deterministic metadata cleanup</div>
+                </div>
+              </div>
 
-      if (phase === 'execution' || phase === 'success') {
-        return (
-          <aside className="flex-1 bg-[#050505] p-6 overflow-y-auto fade-in">
-            <ExecutionView
-              executionProgress={executionProgress}
-              executing={executing}
-              executionSteps={executionSteps}
-            />
-          </aside>
+              {/* DAG Visualization */}
+              <div className="mb-6">
+                <svg viewBox="0 0 600 400" className="w-full h-auto">
+                  <defs>
+                    <linearGradient id="symptomGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#ef4444" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#ef4444" stopOpacity="0.1" />
+                    </linearGradient>
+                    <linearGradient id="causeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.1" />
+                    </linearGradient>
+                    <linearGradient id="fixGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.1" />
+                    </linearGradient>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                      <polygon points="0 0, 10 3, 0 6" fill="#06b6d4" />
+                    </marker>
+                  </defs>
+
+                  {/* Edges */}
+                  <line x1="300" y1="80" x2="200" y2="180" stroke="#06b6d4" strokeWidth="2" markerEnd="url(#arrowhead)" className="dag-edge" />
+                  <line x1="200" y1="220" x2="300" y2="320" stroke="#06b6d4" strokeWidth="2" markerEnd="url(#arrowhead)" className="dag-edge" />
+
+                  {/* Probability Labels */}
+                  <text x="240" y="130" fill="#06b6d4" fontSize="11" fontFamily="monospace">P = 0.94</text>
+                  <text x="240" y="280" fill="#06b6d4" fontSize="11" fontFamily="monospace">P = 0.88</text>
+
+                  {/* Node 1: Symptom */}
+                  <g className="cursor-pointer transition-all hover:scale-110">
+                    <circle cx="300" cy="60" r="50" fill="url(#symptomGrad)" stroke="#ef4444" strokeWidth="2" />
+                    <text x="300" y="55" textAnchor="middle" fill="#ef4444" fontSize="11" fontWeight="bold">HTTP 500</text>
+                    <text x="300" y="68" textAnchor="middle" fill="#ef4444" fontSize="9">Symptom</text>
+                    <text x="300" y="80" textAnchor="middle" fill="#ef4444" fontSize="8" opacity="0.7">checkout-api</text>
+                  </g>
+
+                  {/* Node 2: Deploy Event */}
+                  <g className="cursor-pointer transition-all hover:scale-110">
+                    <circle cx="200" cy="200" r="50" fill="url(#causeGrad)" stroke="#f59e0b" strokeWidth="2" />
+                    <text x="200" y="195" textAnchor="middle" fill="#f59e0b" fontSize="11" fontWeight="bold">Deploy</text>
+                    <text x="200" y="208" textAnchor="middle" fill="#f59e0b" fontSize="9">4a7f2b1</text>
+                    <text x="200" y="220" textAnchor="middle" fill="#f59e0b" fontSize="8" opacity="0.7">payment-svc</text>
+                  </g>
+
+                  {/* Node 3: Root Cause */}
+                  <g className="cursor-pointer transition-all hover:scale-110">
+                    <circle cx="300" cy="340" r="50" fill="url(#causeGrad)" stroke="#f59e0b" strokeWidth="2" />
+                    <text x="300" y="335" textAnchor="middle" fill="#f59e0b" fontSize="11" fontWeight="bold">N+1 Query</text>
+                    <text x="300" y="348" textAnchor="middle" fill="#f59e0b" fontSize="9">Upstream Cause</text>
+                    <text x="300" y="360" textAnchor="middle" fill="#f59e0b" fontSize="8" opacity="0.7">sessions-db</text>
+                  </g>
+
+                  {/* Node 4: Mitigation */}
+                  <g className="cursor-pointer transition-all hover:scale-110">
+                    <circle cx="480" cy="200" r="50" fill="url(#fixGrad)" stroke="#06b6d4" strokeWidth="2" />
+                    <text x="480" y="195" textAnchor="middle" fill="#06b6d4" fontSize="11" fontWeight="bold">Add Index</text>
+                    <text x="480" y="208" textAnchor="middle" fill="#06b6d4" fontSize="9">Mitigation</text>
+                    <text x="480" y="220" textAnchor="middle" fill="#06b6d4" fontSize="8" opacity="0.7">Confidence: 88%</text>
+                  </g>
+
+                  {/* Mitigation Arrow */}
+                  <line x1="350" y1="340" x2="440" y2="220" stroke="#06b6d4" strokeWidth="2" strokeDasharray="4,4" markerEnd="url(#arrowhead)" />
+                </svg>
+              </div>
+
+              {/* Knowledge Base Citation */}
+              <div className="mb-4">
+                <button
+                  onClick={onToggleHistorical}
+                  className="w-full text-left p-4 rounded-lg glass border border-emerald-900/30 hover:border-emerald-900/50 transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded bg-emerald-950/50 flex items-center justify-center shrink-0">
+                      <Icons.Database className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold text-emerald-400 mb-1">Local Memory: Incident Knowledge Base</div>
+                      <div className="text-[11px] text-slate-400">
+                        92% structural match to <span className="font-mono text-emerald-400">RETRO-INC-4512</span> from 6 months ago
+                      </div>
+                    </div>
+                    <Icons.ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                  </div>
+                </button>
+              </div>
+
+              {/* Pattern Corpus Citation */}
+              <div>
+                <button
+                  onClick={onTogglePattern}
+                  className="w-full text-left p-4 rounded-lg glass border border-purple-900/30 hover:border-purple-900/50 transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded bg-purple-950/50 flex items-center justify-center shrink-0">
+                      <Icons.Lock className="w-4 h-4 text-purple-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold text-purple-400 mb-1">Global Moat: Cross-Customer Pattern Corpus</div>
+                      <div className="text-[11px] text-slate-400">
+                        Zero-day signature verified via encrypted endpoint adjacency matrix (RSS + ε-DP)
+                      </div>
+                    </div>
+                    <Icons.ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
         );
       }
 
       return null;
     }
 
-    function CoachUIContent({ executionTree, expandedTreeNode, handleApprove, dispatch }) {
-      return (
-        <div className="h-full flex flex-col">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-[11px] font-bold text-white uppercase tracking-widest">Root Cause Analysis & Remediation</h3>
-            <span className="text-[10px] px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full font-mono">Confidence: 94%</span>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4 flex-1 min-h-0">
-            {/* Pane A: Investigation Steps */}
-            <div className="col-span-1 flex flex-col">
-              <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Investigation Steps</h4>
-              <div className="space-y-1 flex-1 overflow-y-auto">
-                {executionTree.map(node => (
-                  <ExecutionTreeNode
-                    key={node.id}
-                    node={node}
-                    expanded={expandedTreeNode === node.id}
-                    onToggle={() => dispatch({ type: 'TOGGLE_TREE_NODE', payload: node.id })}
-                  />
-                ))}
-                <div className="mt-4 pt-3 border-t border-gray-800">
-                  <div className="text-[10px] text-gray-500 uppercase mb-1">Total Time</div>
-                  <div className="text-sm font-bold text-green-400">1.2s</div>
-                </div>
-              </div>
+    // ==================== REMEDIATION PANE (RIGHT) ====================
+    function RemediationPane({ phase, onApprove }) {
+      if (phase === 'coach') {
+        return (
+          <div className="h-full border-l border-slate-700/50 bg-[#090F0C] flex flex-col">
+            <div className="px-4 py-3 border-b border-slate-700/50">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Remediation Diff & RLHF Scoring</div>
             </div>
 
-            {/* Pane B: Failure Analysis */}
-            <div className="col-span-1 flex flex-col">
-              <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Failure Analysis</h4>
-              <div className="flex-1 flex flex-col gap-3 overflow-y-auto">
-                {/* Topology Graph */}
-                <div className="bg-[#0a0a0a] border border-gray-800 rounded-lg p-3">
-                  <div className="text-[9px] text-gray-500 uppercase mb-2">Service Topology</div>
-                  <TopologyGraph dispatch={dispatch} />
-                </div>
-
-                {/* Causal DAG */}
-                <div className="bg-[#0a0a0a] border border-gray-800 rounded-lg p-4 flex-1">
-                  <div className="text-[9px] text-gray-500 uppercase mb-2">Causal Proof Chain</div>
-                  <CausalDAG dispatch={dispatch} />
-                </div>
-
-                {/* Living Runbooks Card */}
-                <div className="bg-blue-900/10 border border-blue-500/30 rounded p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <svg className="w-3 h-3 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="text-[10px] font-bold text-blue-400 uppercase">Living Runbooks (Local RAG)</span>
-                  </div>
-                  <p className="text-[10px] text-blue-200 leading-relaxed">
-                    <strong className="text-blue-300">92% Match</strong> to{' '}
-                    <button
-                      onClick={() => dispatch({ type: 'TOGGLE_HISTORICAL', payload: true })}
-                      className="hover:underline font-mono text-cyan-400"
-                    >
-                      RETRO-INC-4512
-                    </button>
-                    <br />
-                    <span className="text-gray-400 text-[9px]">Resolved Dec 15, 2025 with identical signature</span>
-                  </p>
-                </div>
-
-                {/* Pattern Corpus Card */}
-                <div className="bg-purple-900/10 border border-purple-500/30 rounded p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <svg className="w-3 h-3 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="text-[10px] font-bold text-purple-400 uppercase flex items-center gap-1">
-                      Cross-Customer Pattern Match
-                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-purple-200 leading-relaxed">
-                    Pattern <code className="bg-black/40 px-1 py-0.5 rounded font-mono text-purple-300">db_n+1_query_timeout_v3</code> detected.
-                    <br />
-                    <strong className="text-purple-300">45 production incidents</strong> across opted-in enterprises (last 90 days).
-                    <br />
-                    <span className="text-gray-400 text-[9px]">Anonymized • Privacy-preserving</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Pane C: Bounded Autonomy Gate */}
-            <div className="col-span-1 flex flex-col">
-              <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Bounded Autonomy Gate</h4>
-
-              {/* Option Comparison */}
-              <div className="space-y-2 mb-4">
-                <div className="bg-red-900/10 border border-red-500/30 rounded p-2 opacity-50">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-bold text-red-400 uppercase">Option A: Add Redis Cache</span>
-                    <span className="text-[9px] font-mono text-red-400">Score: 0.65</span>
-                  </div>
-                  <p className="text-[9px] text-gray-500">Reduces DB load but doesn't fix root cause. Cache invalidation complexity.</p>
-                </div>
-
-                <div className="bg-green-900/10 border-2 border-green-500/50 rounded p-2">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-bold text-green-400 uppercase flex items-center gap-1">
-                      Option B: Add Composite Index ⭐
-                    </span>
-                    <span className="text-[9px] font-mono text-green-400">Score: 0.88</span>
-                  </div>
-                  <p className="text-[9px] text-gray-400">Addresses root N+1 pattern. Historical correlation shows 94% success rate.</p>
-                </div>
-              </div>
-
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {/* Code Diff */}
-              <div className="flex-1 bg-black border border-gray-800 rounded overflow-hidden mb-4">
-                <div className="bg-gray-900 px-3 py-1.5 border-b border-gray-800 flex items-center justify-between">
-                  <span className="text-[9px] font-mono text-gray-400">sessions-db-migration.sql</span>
-                  <span className="text-[8px] text-green-500">+2 lines</span>
+              <div className="glass border border-slate-700/50 rounded-lg overflow-hidden">
+                <div className="px-3 py-2 bg-[#060A08] border-b border-slate-700/50 flex items-center gap-2">
+                  <Icons.Code className="w-3 h-3 text-cyan-400" />
+                  <span className="text-[10px] text-slate-400 font-mono">sessions-db-migration.sql</span>
                 </div>
-                <div className="p-3 font-mono text-[10px] space-y-1">
-                  <div className="text-gray-600">@@ -0,0 +1,2 @@</div>
-                  <div className="diff-line-add text-green-400 px-1 rounded pl-2">
-                    + CREATE INDEX CONCURRENTLY curr_idx_composite
+                <div className="p-3 font-mono text-[10px] space-y-0.5">
+                  <div className="diff-remove px-2 py-1">
+                    <span className="text-red-400">- -- No index on sessions table</span>
                   </div>
-                  <div className="diff-line-add text-green-400 px-1 rounded pl-2">
-                    + ON sessions (user_id, last_active);
+                  <div className="diff-add px-2 py-1">
+                    <span className="text-emerald-400">+ CREATE INDEX CONCURRENTLY idx_sessions_user_sess</span>
+                  </div>
+                  <div className="diff-add px-2 py-1">
+                    <span className="text-emerald-400">+ ON sessions(user_id, session_id);</span>
+                  </div>
+                  <div className="px-2 py-1 text-slate-600">
+                    <span>-- Addresses N+1 query pattern</span>
                   </div>
                 </div>
               </div>
 
-              {/* Approve Button */}
+              {/* RLHF Options */}
+              <div className="space-y-3">
+                <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">RLHF Decision Fork</div>
+
+                {/* Option A - Low Score */}
+                <div className="glass border border-orange-900/30 rounded-lg p-3 opacity-60">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded bg-orange-950/30 flex items-center justify-center shrink-0 text-xs font-bold text-orange-400">
+                      A
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-xs font-semibold text-orange-400 mb-1">Restart Pods</div>
+                      <div className="text-[10px] text-slate-500 mb-2">
+                        Rolling restart of payment-service pods to clear memory leak
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-xs font-mono text-orange-400">Score: 0.30</div>
+                        <div className="text-[9px] text-slate-600">Edge weight decayed (repeated ineffectiveness)</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Option B - High Score */}
+                <div className="glass border border-emerald-900/50 rounded-lg p-3 animate-glow">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded bg-emerald-950/50 flex items-center justify-center shrink-0 text-xs font-bold text-emerald-400">
+                      B
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-xs font-semibold text-emerald-400 mb-1">Execute Composite Index + Scale Replicas</div>
+                      <div className="text-[10px] text-slate-400 mb-2">
+                        Create concurrent database index and scale payment-service replicas from 2→5
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-xs font-mono text-emerald-400">Score: 0.88</div>
+                        <div className="text-[9px] text-slate-500">High confidence (historical action-effect feedback)</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Resource Changes */}
+              <div className="glass border border-slate-700/50 rounded-lg p-3">
+                <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-2">Resource Adjustments</div>
+                <div className="space-y-2 text-[10px] font-mono">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400">payment-service memory:</span>
+                    <span className="text-slate-400">
+                      <span className="line-through text-red-400">512Mi</span> → <span className="text-emerald-400">1024Mi</span>
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400">payment-service replicas:</span>
+                    <span className="text-slate-400">
+                      <span className="line-through text-red-400">2</span> → <span className="text-emerald-400">5</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Footer */}
+            <div className="p-4 border-t border-slate-700/50 space-y-2">
+              <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                <input type="checkbox" id="autoMonitor" defaultChecked className="rounded" />
+                <label htmlFor="autoMonitor">Auto-Monitor Rollback Thresholds (30-day SLO validation)</label>
+              </div>
               <button
-                onClick={handleApprove}
-                className="w-full py-2.5 bg-green-600 hover:bg-green-500 text-white font-bold text-xs rounded transition-all flex items-center justify-center gap-2 bounce group"
-                aria-label="Approve and execute option B with composite index"
+                onClick={onApprove}
+                className="w-full bg-[#00AC69] hover:bg-[#00AC69]/90 text-white font-semibold py-3 rounded-lg transition-all flex items-center justify-center gap-2"
               >
+                <Icons.Play className="w-4 h-4" />
                 <span>Approve & Execute Option B</span>
-                <span className="text-[9px] opacity-70">+0.03 RL Reward</span>
-                <span className="ml-2 text-[8px] opacity-50 group-hover:opacity-100 transition-opacity">⌨ A</span>
+                <span className="text-[10px] opacity-70">+0.03 RL Reward</span>
               </button>
-
-              {/* RLHF Feedback */}
-              <div className="mt-4 pt-4 border-t border-gray-800">
-                <div className="text-[9px] text-gray-500 uppercase mb-2 text-center">Substrate Learning Feedback</div>
-                <div className="flex gap-2">
-                  <button className="flex-1 py-2 bg-[#1a1a1a] border border-gray-800 rounded hover:border-green-500 transition-all flex flex-col items-center justify-center gap-1">
-                    <span className="text-xl">👍</span>
-                    <span className="text-[8px] text-gray-500 font-bold uppercase">Reinforce</span>
-                  </button>
-                  <button className="flex-1 py-2 bg-[#1a1a1a] border border-gray-800 rounded hover:border-red-500 transition-all flex flex-col items-center justify-center gap-1">
-                    <span className="text-xl">👎</span>
-                    <span className="text-[8px] text-gray-500 font-bold uppercase">Correction</span>
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
-        </div>
-      );
+        );
+      }
+
+      return null;
     }
 
-    function ExecutionTreeNode({ node, expanded, onToggle }) {
+    // ==================== EXECUTION TERMINAL ====================
+    function ExecutionTerminal({ progress, onComplete }) {
+      useEffect(() => {
+        if (progress >= 100) {
+          setTimeout(onComplete, 1000);
+        }
+      }, [progress, onComplete]);
+
       return (
-        <div className="border-l-2 border-gray-800 pl-3">
-          <div
-            onClick={onToggle}
-            className="tree-node p-2 rounded transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
-                <svg className="w-2.5 h-2.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
-                </svg>
-              </div>
-              <span className="text-[11px] font-medium text-gray-300">{node.name}</span>
-            </div>
-            <div className="flex items-center gap-2 ml-6 mt-0.5">
-              <span className="text-[9px] text-gray-500 font-mono">{node.time}</span>
-              <span className="text-[8px] text-gray-600 font-mono">{node.timestamp}</span>
-            </div>
+        <div className="h-full border-l border-slate-700/50 bg-[#090F0C] flex flex-col">
+          <div className="px-4 py-3 border-b border-slate-700/50 flex items-center justify-between">
+            <div className="text-xs font-bold text-cyan-400 uppercase tracking-wider font-mono">SUBSTRATE_EXECUTION_LOG</div>
+            <div className="text-[10px] text-slate-600 font-mono">PID: 9024</div>
           </div>
-          {expanded && (
-            <div className="mt-2 ml-6 bg-black/50 border border-gray-800 rounded p-2 fade-in">
-              <pre className="text-[9px] text-gray-400 font-mono overflow-x-auto">
-                {JSON.stringify(node.metadata, null, 2)}
-              </pre>
+
+          <div className="flex-1 overflow-y-auto p-4 font-mono text-[10px] space-y-2">
+            <div className="text-slate-400 animate-fadeIn">
+              <span className="text-slate-600">[10:25:12]</span> kubectl exec -n production checkout-db -- psql -c "CREATE INDEX CONCURRENTLY..."
             </div>
-          )}
-        </div>
-      );
-    }
-
-    function TopologyGraph({ dispatch }) {
-      const nodes = [
-        { id: 'user', label: 'User', x: 100, y: 20, color: '#6b7280' },
-        { id: 'lb', label: 'Load Balancer', x: 100, y: 60, color: '#3b82f6' },
-        { id: 'api', label: 'checkout-api', x: 100, y: 100, color: '#ef4444', error: true },
-        { id: 'db', label: 'sessions-db', x: 100, y: 140, color: '#f59e0b', error: true },
-      ];
-
-      const edges = [
-        { from: 'user', to: 'lb', label: '', color: '#6b7280' },
-        { from: 'lb', to: 'api', label: '', color: '#ef4444' },
-        { from: 'api', to: 'db', label: '4.2s', color: '#ef4444' },
-      ];
-
-      return (
-        <svg className="w-full h-32" viewBox="0 0 200 160">
-          {/* Edges */}
-          {edges.map((edge, idx) => {
-            const from = nodes.find(n => n.id === edge.from);
-            const to = nodes.find(n => n.id === edge.to);
-            return (
-              <g key={idx}>
-                <line
-                  x1={from.x}
-                  y1={from.y + 12}
-                  x2={to.x}
-                  y2={to.y - 12}
-                  stroke={edge.color}
-                  strokeWidth="2"
-                  markerEnd="url(#arrow)"
-                />
-                {edge.label && (
-                  <text x={from.x + 10} y={(from.y + to.y) / 2} fill={edge.color} fontSize="8" fontFamily="monospace">
-                    {edge.label}
-                  </text>
-                )}
-              </g>
-            );
-          })}
-
-          <defs>
-            <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-              <polygon points="0 0, 10 3, 0 6" fill="#ef4444" />
-            </marker>
-          </defs>
-
-          {/* Nodes */}
-          {nodes.map(node => (
-            <g
-              key={node.id}
-              className="topology-node cursor-pointer"
-              onClick={() => dispatch({ type: 'SELECT_TOPOLOGY_NODE', payload: node })}
-            >
-              <title>{node.label} - Click for metrics and health status</title>
-              <rect
-                x={node.x - 35}
-                y={node.y - 12}
-                width="70"
-                height="24"
-                fill={node.color}
-                opacity="0.2"
-                stroke={node.color}
-                strokeWidth="2"
-                rx="4"
-              />
-              <text
-                x={node.x}
-                y={node.y + 4}
-                textAnchor="middle"
-                fill={node.color}
-                fontSize="10"
-                fontWeight="600"
-              >
-                {node.label}
-              </text>
-            </g>
-          ))}
-        </svg>
-      );
-    }
-
-    function CausalDAG({ dispatch }) {
-      return (
-        <svg className="w-full h-full" viewBox="0 0 200 300">
-          <line x1="100" y1="60" x2="100" y2="120" stroke="#06b6d4" strokeWidth="2" className="dag-edge" markerEnd="url(#arrowhead)" />
-          <line x1="100" y1="180" x2="100" y2="240" stroke="#06b6d4" strokeWidth="2" className="dag-edge" markerEnd="url(#arrowhead)" />
-
-          <defs>
-            <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-              <polygon points="0 0, 10 3, 0 6" fill="#06b6d4" />
-            </marker>
-            <radialGradient id="symptom-grad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#dc2626" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#dc2626" stopOpacity="0" />
-            </radialGradient>
-            <radialGradient id="cause-grad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
-            </radialGradient>
-            <radialGradient id="mitigation-grad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
-            </radialGradient>
-          </defs>
-
-          {/* Symptom Node */}
-          <g className="dag-node" onClick={() => dispatch({ type: 'SELECT_DAG_NODE', payload: { id: 'symptom', name: 'HTTP 500 Symptom', trace_id: '7f8a9b2c4e6d1a3f9e5c8d7b6a4f2e1c' } })}>
-            <title>HTTP 500 Errors - Click for trace details (87 errors, 4237ms avg)</title>
-            <circle cx="100" cy="40" r="35" fill="url(#symptom-grad)" stroke="#dc2626" strokeWidth="2" />
-            <text x="100" y="35" textAnchor="middle" fill="#ef4444" fontSize="9" fontWeight="bold">HTTP 500</text>
-            <text x="100" y="48" textAnchor="middle" fill="#ef4444" fontSize="8">Symptom</text>
-          </g>
-
-          <text x="110" y="90" fill="#06b6d4" fontSize="9" fontFamily="monospace" fontWeight="500">P = 0.94</text>
-
-          {/* Cause Node */}
-          <g className="dag-node" onClick={() => dispatch({ type: 'SELECT_DAG_NODE', payload: { id: 'cause', name: 'N+1 Query Upstream Cause', sql: 'SELECT * FROM sessions WHERE...' } })}>
-            <title>N+1 Query Pattern - Click for SQL query and execution plan</title>
-            <circle cx="100" cy="150" r="35" fill="url(#cause-grad)" stroke="#f59e0b" strokeWidth="2" />
-            <text x="100" y="145" textAnchor="middle" fill="#fbbf24" fontSize="9" fontWeight="bold">N+1 Query</text>
-            <text x="100" y="158" textAnchor="middle" fill="#fbbf24" fontSize="8">Upstream Cause</text>
-          </g>
-
-          <text x="110" y="210" fill="#06b6d4" fontSize="9" fontFamily="monospace" fontWeight="500">P = 0.88</text>
-
-          {/* Mitigation Node */}
-          <g className="dag-node" onClick={() => dispatch({ type: 'SELECT_DAG_NODE', payload: { id: 'mitigation', name: 'Add Composite Index Mitigation', confidence: 0.88 } })}>
-            <title>Add Composite Index - 88% confidence, 97% improvement expected</title>
-            <circle cx="100" cy="270" r="35" fill="url(#mitigation-grad)" stroke="#06b6d4" strokeWidth="2" />
-            <text x="100" y="265" textAnchor="middle" fill="#06b6d4" fontSize="9" fontWeight="bold">Add Index</text>
-            <text x="100" y="278" textAnchor="middle" fill="#06b6d4" fontSize="8">Mitigation</text>
-          </g>
-        </svg>
-      );
-    }
-
-    function ExecutionView({ executionProgress, executing, executionSteps }) {
-      const getProgressColor = (progress) => {
-        if (progress < 33) return 'from-blue-500 to-blue-600';
-        if (progress < 67) return 'from-cyan-500 to-cyan-600';
-        return 'from-green-500 to-green-600';
-      };
-
-      return (
-        <div className="flex-1 flex flex-col">
-          <div className="bg-[#0a0a0a] border border-gray-800 rounded-lg p-6 flex-1 flex flex-col">
-            <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-800 shrink-0">
-              <span className="text-blue-400 font-bold tracking-wider text-xs font-mono">SUBSTRATE_EXECUTION_LOG</span>
-              <span className="text-gray-600 text-[10px] font-mono">PID: 9024</span>
+            <div className="text-slate-400 animate-fadeIn" style={{ animationDelay: '0.5s' }}>
+              <span className="text-slate-600">[10:25:13]</span> Submitting execution trace to Action Handoffs...
             </div>
-
-            <div className="flex-1 space-y-3 overflow-y-auto font-mono text-[11px]">
-              {executionSteps.map((step, idx) => (
-                executionProgress >= step.progress && (
-                  <div key={idx} className={`${step.color} fade-in`}>
-                    <span className="text-gray-600">{step.time}</span> {step.text}
-                  </div>
-                )
-              ))}
-
-              {executionProgress >= 100 && (
-                <div className="mt-4 pt-4 border-t border-gray-800 fade-in">
-                  <div className="text-gray-400 space-y-2">
-                    <div><span className="text-gray-600">[10:26:02]</span> Monitoring P95 latency for 30 days...</div>
-                    <div><span className="text-gray-600">[10:26:05]</span> Current P95: <span className="text-green-400 font-bold">120ms</span> ✓</div>
-                    <div><span className="text-gray-600">[10:26:06]</span> Error rate: <span className="text-green-400">0.1%</span> (down from 23%)</div>
-                    <div><span className="text-gray-600">[10:26:07]</span> Apdex recovered: <span className="text-green-400">0.98</span></div>
-                  </div>
-                </div>
-              )}
+            <div className="text-slate-400 animate-fadeIn" style={{ animationDelay: '1s' }}>
+              <span className="text-slate-600">[10:25:14]</span> Guardrails Gateway: verified target constraints. <span className="text-emerald-400">[AUTHORIZED]</span>
+            </div>
+            <div className="text-cyan-400 animate-fadeIn" style={{ animationDelay: '1.5s' }}>
+              <span className="text-slate-600">[10:25:15]</span> Building index concurrently... (this will not lock writes).
+            </div>
+            <div className="text-emerald-400 animate-fadeIn" style={{ animationDelay: '2s' }}>
+              <span className="text-slate-600">[10:26:01]</span> SUCCESS. Index idx_sessions_user_sess created.
+            </div>
+            <div className="text-slate-400 animate-fadeIn" style={{ animationDelay: '2.5s' }}>
+              <span className="text-slate-600">[10:26:02]</span> Scaling payment-service replicas 2→5...
+            </div>
+            <div className="text-emerald-400 animate-fadeIn" style={{ animationDelay: '3s' }}>
+              <span className="text-slate-600">[10:26:05]</span> Replica scaling complete. All pods healthy.
             </div>
 
             {/* Progress Bar */}
-            {executing && executionProgress < 100 && (
-              <div className="mt-6 pt-4 border-t border-gray-800 shrink-0">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] text-gray-400 font-mono">Execution Progress</span>
-                  <span className="text-[10px] text-cyan-400 font-mono">{Math.round(executionProgress)}%</span>
-                </div>
-                <div className="h-2 bg-gray-900 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full bg-gradient-to-r ${getProgressColor(executionProgress)} transition-all duration-1000`}
-                    style={{width: `${executionProgress}%`}}
-                  ></div>
-                </div>
-                <p className="text-[10px] text-gray-500 mt-2 flex items-center gap-2">
-                  <span className="inline-block w-1 h-1 bg-cyan-500 rounded-full pulse"></span>
-                  Live telemetry validation in progress...
-                </p>
+            <div className="mt-6 pt-4 border-t border-slate-700/50">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-cyan-400 font-bold">Execution Progress</span>
+                <span className="text-cyan-400 font-bold">{progress}%</span>
               </div>
-            )}
+              <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-cyan-400 transition-all duration-1000 ease-out"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+              <div className="text-[9px] text-slate-600 mt-2">● Live telemetry validation in progress...</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==================== SUCCESS COUNTDOWN ====================
+    function SuccessCountdown({ timer, onComplete }) {
+      useEffect(() => {
+        if (timer === 0) {
+          setTimeout(onComplete, 1000);
+        }
+      }, [timer, onComplete]);
+
+      return (
+        <div className="h-full border-l border-slate-700/50 bg-[#090F0C] flex items-center justify-center p-8">
+          <div className="text-center animate-fadeIn">
+            <div className="w-32 h-32 mx-auto mb-6 relative">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="60"
+                  stroke="#1b2e24"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="60"
+                  stroke="#00AC69"
+                  strokeWidth="4"
+                  fill="none"
+                  strokeDasharray={`${2 * Math.PI * 60}`}
+                  strokeDashoffset={`${2 * Math.PI * 60 * (timer / 30)}`}
+                  className="transition-all duration-1000"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-4xl font-bold text-emerald-400 font-mono">{timer}</div>
+              </div>
+            </div>
+            <div className="text-xs font-semibold text-emerald-400 mb-2">30-Day SLO Validation Window</div>
+            <div className="text-[11px] text-slate-400">Monitoring P95 latency baseline recovery...</div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==================== FINAL SUCCESS BANNER ====================
+    function SuccessBanner() {
+      return (
+        <div className="h-full border-l border-slate-700/50 bg-[#090F0C] flex items-center justify-center p-8">
+          <div className="max-w-md animate-slideUp">
+            <div className="glass border border-emerald-900/50 rounded-lg p-6 animate-glow">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-emerald-950/50 flex items-center justify-center animate-bounce">
+                  <Icons.Check className="w-6 h-6 text-emerald-400" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Substrate Transaction Confirmed</div>
+                  <div className="text-[10px] text-slate-500 font-mono">VERIFIED_OUTCOME</div>
+                </div>
+              </div>
+
+              <div className="space-y-3 text-[11px] text-slate-300">
+                <div className="flex items-center gap-2">
+                  <Icons.Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                  <span>Mitigation complete. Apollo framework latency baseline fully recovered to <span className="font-mono text-emerald-400">115ms</span>.</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Icons.Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                  <span>RLHF Loop issued mathematical reward of <span className="font-mono text-emerald-400 animate-bounce">+0.03</span> points.</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Icons.Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                  <span>Causal Graph edge weight permanently upgraded to <span className="font-mono text-cyan-400">0.91</span> confidence for future incident classification cycles.</span>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-slate-700/50 text-[10px] text-slate-600">
+                <div className="flex items-center gap-1">
+                  <span className="text-emerald-400">●</span>
+                  <span>30-day SLO monitoring enabled • Automatic rollback thresholds configured</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       );
     }
 
     // ==================== MODALS ====================
-
-    function DAGNodeModal({ node, onClose }) {
-      return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" onClick={onClose}>
-          <div className="bg-[#0a0a0a] border-2 border-cyan-500/50 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto mx-4 slide-up" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">{node.name}</h3>
-              <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {node.id === 'symptom' && (
-              <div className="space-y-4">
-                <div className="bg-black/50 border border-gray-800 rounded p-3">
-                  <div className="text-xs text-gray-500 uppercase mb-2">Trace Details</div>
-                  <div className="font-mono text-xs space-y-1 text-gray-300">
-                    <div><span className="text-gray-500">trace.id:</span> {node.trace_id}</div>
-                    <div><span className="text-gray-500">duration:</span> <span className="text-red-400">4237ms</span></div>
-                    <div><span className="text-gray-500">error_count:</span> <span className="text-red-400">87</span></div>
-                  </div>
-                </div>
-
-                <div className="bg-black/50 border border-gray-800 rounded p-3">
-                  <div className="text-xs text-gray-500 uppercase mb-2">Distributed Trace</div>
-                  {traceData.spans.map((span, idx) => (
-                    <div key={idx} className="mb-2">
-                      <div className="text-[10px] font-mono text-gray-400">{span.name}</div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="flex-1 h-4 bg-gray-900 rounded overflow-hidden relative">
-                          <div
-                            className={`absolute h-full ${span.error ? 'bg-red-500' : 'bg-blue-500'}`}
-                            style={{
-                              left: `${(span.start / traceData.total_duration) * 100}%`,
-                              width: `${(span.duration / traceData.total_duration) * 100}%`
-                            }}
-                          ></div>
-                        </div>
-                        <span className="text-[10px] font-mono text-gray-500 w-16 text-right">{span.duration}ms</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <a
-                  href={`https://one.newrelic.com/traces/${node.trace_id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
-                >
-                  View in New Relic →
-                </a>
-              </div>
-            )}
-
-            {node.id === 'cause' && (
-              <div className="space-y-4">
-                <div className="bg-black/50 border border-gray-800 rounded p-3">
-                  <div className="text-xs text-gray-500 uppercase mb-2">SQL Query</div>
-                  <div className="font-mono text-[10px] text-amber-300">
-                    {node.sql}
-                  </div>
-                </div>
-                <div className="bg-black/50 border border-gray-800 rounded p-3">
-                  <div className="text-xs text-gray-500 uppercase mb-2">Query Plan Analysis</div>
-                  <div className="text-[10px] text-gray-400 space-y-1">
-                    <div>Seq Scan on sessions (cost=1542.32..8921.54)</div>
-                    <div className="text-red-400">⚠ Missing index: (user_id, last_active)</div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {node.id === 'mitigation' && (
-              <div className="space-y-4">
-                <div className="bg-black/50 border border-gray-800 rounded p-3">
-                  <div className="text-xs text-gray-500 uppercase mb-2">Solution Confidence</div>
-                  <div className="text-2xl font-bold text-cyan-400">{(node.confidence * 100).toFixed(0)}%</div>
-                  <div className="text-xs text-gray-400 mt-1">Based on 1,247 similar incidents</div>
-                </div>
-                <div className="bg-black/50 border border-gray-800 rounded p-3">
-                  <div className="text-xs text-gray-500 uppercase mb-2">Expected Impact</div>
-                  <div className="text-xs text-gray-300 space-y-1">
-                    <div>Query time: 4.2s → <span className="text-green-400">120ms</span> (97% improvement)</div>
-                    <div>DB load: -78% connection pool pressure</div>
-                    <div>Index size: ~42MB (minimal impact)</div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    function TopologyNodeModal({ node, onClose }) {
-      return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" onClick={onClose}>
-          <div className="bg-[#0a0a0a] border-2 border-blue-500/50 rounded-lg p-6 max-w-xl w-full max-h-[80vh] overflow-y-auto mx-4 slide-up" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">{node.label}</h3>
-              <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div className="bg-black/50 border border-gray-800 rounded p-3">
-                <div className="text-xs text-gray-500 uppercase mb-2">Golden Signals</div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <div className="text-[10px] text-gray-500">Traffic</div>
-                    <div className="text-sm font-bold text-white">1,247 req/s</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-gray-500">Errors</div>
-                    <div className={`text-sm font-bold ${node.error ? 'text-red-400' : 'text-green-400'}`}>
-                      {node.error ? '23%' : '0.1%'}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-gray-500">Duration (P95)</div>
-                    <div className={`text-sm font-bold ${node.error ? 'text-red-400' : 'text-green-400'}`}>
-                      {node.error ? '4.2s' : '120ms'}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-gray-500">Saturation</div>
-                    <div className="text-sm font-bold text-amber-400">78%</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-black/50 border border-gray-800 rounded p-3">
-                <div className="text-xs text-gray-500 uppercase mb-2">Entity Info</div>
-                <div className="font-mono text-[10px] text-gray-300 space-y-1">
-                  <div><span className="text-gray-500">entity.guid:</span> MXxBUE18QVBQTElDQVRJT058MTIzNDU2</div>
-                  <div><span className="text-gray-500">version:</span> v2.1.4</div>
-                  <div><span className="text-gray-500">instances:</span> 3 pods</div>
-                </div>
-              </div>
-
-              <a
-                href="https://one.newrelic.com/nr1-core"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
-              >
-                View in New Relic →
-              </a>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
     function HistoricalIncidentModal({ onClose }) {
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" onClick={onClose}>
-          <div className="bg-[#0a0a0a] border-2 border-purple-500/50 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto mx-4 slide-up" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">RETRO-INC-4512</h3>
-              <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-8 animate-fadeIn">
+          <div className="max-w-3xl w-full glass border border-slate-700/50 rounded-lg overflow-hidden animate-slideUp">
+            <div className="px-6 py-4 border-b border-slate-700/50 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-emerald-400">Historical Incident: RETRO-INC-4512</h3>
+                <div className="text-[10px] text-slate-500 font-mono">December 15, 2025 • 92% structural match</div>
+              </div>
+              <button onClick={onClose} className="text-slate-500 hover:text-slate-300 transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              <div className="prose prose-invert prose-sm max-w-none">
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Incident Summary</h4>
+                <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                  On December 15, 2025, the checkout-api service experienced severe P95 latency degradation
+                  from 110ms to 3,850ms, affecting 980K users during peak traffic hours. The root cause was
+                  identified as an N+1 query pattern introduced in a recent ORM update affecting the sessions table.
+                </p>
 
-            <div className="space-y-4">
-              <div className="bg-black/50 border border-gray-800 rounded p-3">
-                <div className="text-xs text-gray-500 uppercase mb-2">Incident Details</div>
-                <div className="text-xs text-gray-300 space-y-1">
-                  <div><span className="text-gray-500">Date:</span> December 15, 2025</div>
-                  <div><span className="text-gray-500">Owner:</span> @sarah.chen</div>
-                  <div><span className="text-gray-500">Duration:</span> 47 minutes</div>
-                  <div><span className="text-gray-500">Severity:</span> P1</div>
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 mt-6">Root Cause</h4>
+                <div className="bg-slate-900/50 rounded p-3 font-mono text-[10px] text-slate-300 mb-4">
+                  <div className="text-yellow-400">-- Unindexed query executing 1000+ times per request</div>
+                  <div>SELECT * FROM sessions WHERE user_id = ? AND session_id = ?;</div>
+                  <div className="text-slate-600 mt-2">-- Missing composite index caused full table scans</div>
                 </div>
-              </div>
 
-              <div className="bg-black/50 border border-gray-800 rounded p-3">
-                <div className="text-xs text-gray-500 uppercase mb-2">Similarity Breakdown</div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400">Query Pattern</span>
-                    <span className="text-xs font-mono text-green-400">98%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400">Error Signature</span>
-                    <span className="text-xs font-mono text-green-400">87%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400">Temporal Pattern</span>
-                    <span className="text-xs font-mono text-amber-400">89%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400">Context Match</span>
-                    <span className="text-xs font-mono text-green-400">91%</span>
-                  </div>
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 mt-6">Resolution</h4>
+                <div className="bg-emerald-950/30 border border-emerald-900/30 rounded p-3 font-mono text-[10px] text-emerald-300 mb-4">
+                  <div>CREATE INDEX CONCURRENTLY idx_sessions_composite</div>
+                  <div>ON sessions(user_id, session_id);</div>
+                  <div className="text-slate-500 mt-2">-- Latency recovered to 105ms baseline in 8 minutes</div>
                 </div>
-              </div>
 
-              <div className="bg-black/50 border border-gray-800 rounded p-3">
-                <div className="text-xs text-gray-500 uppercase mb-2">Resolution Applied</div>
-                <div className="font-mono text-[10px] text-gray-300 bg-black/50 p-2 rounded">
-                  CREATE INDEX CONCURRENTLY session_lookup_idx<br />
-                  ON sessions (user_id, last_active);<br />
-                  <br />
-                  <span className="text-green-400">-- Success rate: 94% in similar scenarios</span>
-                </div>
-              </div>
-
-              <div className="bg-green-900/10 border border-green-500/30 rounded p-3">
-                <div className="text-xs font-bold text-green-400 mb-1">Resolution Verified</div>
-                <div className="text-xs text-gray-300">
-                  P95 latency recovered from 4.8s to 110ms. No regressions detected over 30-day monitoring period.
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 mt-6">Slack ChatOps Log</h4>
+                <div className="bg-slate-900/50 rounded p-3 space-y-2 text-[10px]">
+                  <div className="text-slate-500">[14:23:15] <span className="text-blue-400">@sarah.chen</span>: Seeing massive latency spike on checkout</div>
+                  <div className="text-slate-500">[14:24:02] <span className="text-purple-400">@autopilot</span>: Causal analysis complete. N+1 detected. Proposing index creation.</div>
+                  <div className="text-slate-500">[14:24:45] <span className="text-blue-400">@sarah.chen</span>: /approve</div>
+                  <div className="text-slate-500">[14:25:12] <span className="text-purple-400">@autopilot</span>: ✓ Index created. Monitoring recovery.</div>
+                  <div className="text-slate-500">[14:32:08] <span className="text-purple-400">@autopilot</span>: ✓ Latency stabilized at 105ms. Incident resolved.</div>
                 </div>
               </div>
             </div>
@@ -1333,10 +865,182 @@
       );
     }
 
-    // ==================== RENDER APP ====================
+    function PatternCorpusModal({ onClose }) {
+      return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-8 animate-fadeIn">
+          <div className="max-w-3xl w-full glass border border-slate-700/50 rounded-lg overflow-hidden animate-slideUp">
+            <div className="px-6 py-4 border-b border-slate-700/50 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-purple-400">Global Pattern Corpus: Encrypted EAM Verification</h3>
+                <div className="text-[10px] text-slate-500">Cross-customer failure model with privacy preservation</div>
+              </div>
+              <button onClick={onClose} className="text-slate-500 hover:text-slate-300 transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              <div className="space-y-4">
+                <div className="glass border border-purple-900/30 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Icons.Lock className="w-4 h-4 text-purple-400" />
+                    <span className="text-xs font-bold text-purple-400">Privacy-Preserving Pattern Matching</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed mb-3">
+                    New Relic's Substrate uses <span className="font-mono text-purple-400">3-party Replicated Secret Sharing (RSS)</span> with
+                    Local Differential Privacy (ε-DP) to detect cross-customer failure patterns without exposing sensitive data.
+                  </p>
+                  <div className="text-[10px] text-slate-500 space-y-1">
+                    <div>✓ Graph isomorphism check over encrypted Endpoint Adjacency Matrix (EAM)</div>
+                    <div>✓ Zero knowledge of customer source code or PII strings</div>
+                    <div>✓ Abstract failure signatures only (topology + temporal patterns)</div>
+                  </div>
+                </div>
 
+                <div className="glass border border-slate-700/50 rounded-lg p-4">
+                  <div className="text-xs font-bold text-cyan-400 mb-3">Pattern Signature Match</div>
+                  <div className="font-mono text-[10px] space-y-1 text-slate-400">
+                    <div><span className="text-slate-600">Pattern ID:</span> <span className="text-cyan-400">PSG-7829A</span></div>
+                    <div><span className="text-slate-600">Topology Hash:</span> <span className="text-slate-500">sha256:4f3a2b1c...</span></div>
+                    <div><span className="text-slate-600">Temporal Signature:</span> <span className="text-slate-500">Deploy → Latency Spike (2m lag)</span></div>
+                    <div><span className="text-slate-600">Structural Similarity:</span> <span className="text-emerald-400">96.3%</span></div>
+                    <div><span className="text-slate-600">Accounts Affected (anonymized):</span> <span className="text-slate-500">147 enterprises</span></div>
+                  </div>
+                </div>
+
+                <div className="glass border border-emerald-900/30 rounded-lg p-4">
+                  <div className="text-xs font-bold text-emerald-400 mb-2">Verified Mitigation Strategy</div>
+                  <div className="text-[11px] text-slate-400 mb-3">
+                    This pattern has been successfully mitigated 147 times across the global corpus using composite index creation.
+                  </div>
+                  <div className="flex items-center gap-4 text-[10px]">
+                    <div>
+                      <div className="text-slate-600">Success Rate</div>
+                      <div className="text-emerald-400 font-mono font-bold">98.6%</div>
+                    </div>
+                    <div>
+                      <div className="text-slate-600">Avg MTTR</div>
+                      <div className="text-cyan-400 font-mono font-bold">6.2 min</div>
+                    </div>
+                    <div>
+                      <div className="text-slate-600">Confidence</div>
+                      <div className="text-purple-400 font-mono font-bold">High</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==================== MAIN APP ====================
+    function AutopilotApp() {
+      const [state, dispatch] = useReducer(appReducer, initialState);
+      const { phase, url, executionTree, showHistoricalIncident, showPatternCorpus,
+              executionProgress, countdownTimer, showTerminal } = state;
+
+      // Progressive tree node completion
+      useEffect(() => {
+        if (phase === 'analysis' && executionTree.length > 0) {
+          executionTree.forEach((node, idx) => {
+            setTimeout(() => {
+              dispatch({ type: 'UPDATE_TREE_NODE', payload: { id: node.id, status: 'loading' } });
+              setTimeout(() => {
+                dispatch({ type: 'UPDATE_TREE_NODE', payload: { id: node.id, status: 'complete' } });
+                if (idx === executionTree.length - 1) {
+                  setTimeout(() => dispatch({ type: 'SHOW_COACH' }), 1000);
+                }
+              }, 2000);
+            }, node.delay);
+          });
+        }
+      }, [phase, executionTree]);
+
+      // Execution progress
+      useEffect(() => {
+        if (phase === 'execution') {
+          const interval = setInterval(() => {
+            dispatch({ type: 'UPDATE_PROGRESS', payload: Math.min(executionProgress + 10, 100) });
+          }, 500);
+          return () => clearInterval(interval);
+        }
+      }, [phase, executionProgress]);
+
+      // Start countdown when execution completes
+      useEffect(() => {
+        if (executionProgress >= 100 && phase === 'execution') {
+          setTimeout(() => {
+            dispatch({ type: 'START_COUNTDOWN' });
+            const interval = setInterval(() => {
+              dispatch({ type: 'TICK_COUNTDOWN' });
+            }, 100);
+            return () => clearInterval(interval);
+          }, 1000);
+        }
+      }, [executionProgress, phase]);
+
+      // Show success when countdown reaches 0
+      useEffect(() => {
+        if (countdownTimer === 0 && phase === 'execution') {
+          setTimeout(() => dispatch({ type: 'SHOW_SUCCESS' }), 500);
+        }
+      }, [countdownTimer, phase]);
+
+      const handleInvestigate = () => {
+        dispatch({ type: 'START_INVESTIGATION' });
+      };
+
+      const handleApprove = () => {
+        dispatch({ type: 'START_EXECUTION' });
+      };
+
+      return (
+        <div className="h-screen flex flex-col bg-[#060A08]">
+          <URLBar url={url} />
+
+          {phase === 'detection' && (
+            <DetectionPhase onInvestigate={handleInvestigate} />
+          )}
+
+          {(phase === 'analysis' || phase === 'coach' || phase === 'execution' || phase === 'success') && (
+            <div className="flex-1 flex overflow-hidden">
+              {/* Left Pane: 25% */}
+              <div className="w-1/4 min-w-[280px]">
+                <ExecutionTree nodes={executionTree} />
+              </div>
+
+              {/* Center Pane: 50% */}
+              <div className="flex-1">
+                <CausalCanvas
+                  phase={phase}
+                  onToggleHistorical={() => dispatch({ type: 'TOGGLE_HISTORICAL' })}
+                  onTogglePattern={() => dispatch({ type: 'TOGGLE_PATTERN_CORPUS' })}
+                />
+              </div>
+
+              {/* Right Pane: 25% */}
+              <div className="w-1/4 min-w-[280px]">
+                {phase === 'coach' && <RemediationPane phase={phase} onApprove={handleApprove} />}
+                {phase === 'execution' && executionProgress < 100 && <ExecutionTerminal progress={executionProgress} onComplete={() => {}} />}
+                {phase === 'execution' && executionProgress >= 100 && countdownTimer > 0 && <SuccessCountdown timer={countdownTimer} onComplete={() => {}} />}
+                {phase === 'success' && <SuccessBanner />}
+              </div>
+            </div>
+          )}
+
+          {/* Modals */}
+          {showHistoricalIncident && <HistoricalIncidentModal onClose={() => dispatch({ type: 'TOGGLE_HISTORICAL' })} />}
+          {showPatternCorpus && <PatternCorpusModal onClose={() => dispatch({ type: 'TOGGLE_PATTERN_CORPUS' })} />}
+        </div>
+      );
+    }
+
+    // ==================== RENDER ====================
     const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<AutopilotSRE />);
+    root.render(<AutopilotApp />);
   </script>
 </body>
 </html>
