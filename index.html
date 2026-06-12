@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autopilot SRE Agent - New Relic Substrate MVP</title>
+  <meta name="description" content="Production-grade SRE Agent powered by New Relic's Substrate intelligence layer">
+
+  <!-- React & Babel -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      box-sizing: border-box;
+    }
+
+    .font-mono {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+    }
+
+    body {
+      margin: 0;
+      background: #060A08;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Animations */
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    @keyframes flowPulse {
+      0% { stroke-dashoffset: 100; opacity: 0.3; }
+      50% { opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: 0.3; }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    .slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+    .slide-down { animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
+    .pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    .bounce { animation: bounce 0.5s ease-in-out 3; }
+
+    /* DAG Styling */
+    .dag-node {
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.3));
+    }
+    .dag-node:hover {
+      transform: scale(1.08);
+      filter: drop-shadow(0 0 16px rgba(6, 182, 212, 0.6));
+    }
+
+    .dag-edge {
+      stroke-dasharray: 8, 4;
+      animation: flowPulse 2s linear infinite;
+    }
+
+    /* Tree Node Styling */
+    .tree-node {
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .tree-node:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Code Diff Styling */
+    .diff-line-add {
+      background: rgba(34, 197, 94, 0.1);
+      border-left: 3px solid rgb(34, 197, 94);
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0a0a0a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #444;
+    }
+
+    /* Modal Backdrop */
+    .modal-backdrop {
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(4px);
+    }
+
+    /* Topology Graph Styles */
+    .topology-node {
+      transition: all 0.2s ease;
+    }
+    .topology-node:hover {
+      filter: brightness(1.3);
+    }
+
+    /* Focus Styles for Accessibility */
+    *:focus-visible {
+      outline: 2px solid #06b6d4;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useReducer } = React;
+
+    // ==================== STATE MANAGEMENT ====================
+
+    const initialState = {
+      phase: 'welcome',
+      showDictionary: false,
+      expandedTreeNode: null,
+      executing: false,
+      executionProgress: 0,
+      showMicDrop: false,
+      selectedDAGNode: null,
+      selectedTopologyNode: null,
+      historicalIncidentOpen: false,
+    };
+
+    function appReducer(state, action) {
+      switch (action.type) {
+        case 'SET_PHASE':
+          return { ...state, phase: action.payload };
+        case 'TOGGLE_DICTIONARY':
+          return { ...state, showDictionary: action.payload };
+        case 'TOGGLE_TREE_NODE':
+          return { ...state, expandedTreeNode: state.expandedTreeNode === action.payload ? null : action.payload };
+        case 'START_EXECUTION':
+          return { ...state, executing: true, phase: 'execution' };
+        case 'UPDATE_PROGRESS':
+          return { ...state, executionProgress: action.payload };
+        case 'SHOW_SUCCESS':
+          return { ...state, phase: 'success', showMicDrop: true };
+        case 'SELECT_DAG_NODE':
+          return { ...state, selectedDAGNode: action.payload };
+        case 'SELECT_TOPOLOGY_NODE':
+          return { ...state, selectedTopologyNode: action.payload };
+        case 'TOGGLE_HISTORICAL':
+          return { ...state, historicalIncidentOpen: action.payload };
+        default:
+          return state;
+      }
+    }
+
+    // ==================== MOCK DATA ====================
+
+    const executionTree = [
+      {
+        id: 1,
+        name: 'Query Entity Graph',
+        time: '120ms',
+        status: 'complete',
+        timestamp: '10:24:48.120',
+        metadata: {
+          target: 'checkout-api',
+          entity_guid: 'MXxBUE18QVBQTElDQVRJT058MTIzNDU2',
+          depth: 2,
+          nodes_found: 12,
+          topology: 'checkout-api → sessions-db → replica-pool',
+        }
+      },
+      {
+        id: 2,
+        name: 'Parse APM Traces',
+        time: '340ms',
+        timestamp: '10:24:48.460',
+        status: 'complete',
+        metadata: {
+          trace_id: '7f8a9b2c4e6d1a3f9e5c8d7b6a4f2e1c',
+          span_id: '9c8b7a6e5d4c3b2a',
+          trace_count: 1432,
+          slow_spans: 24,
+          span_analysis: 'detected_n+1_pattern',
+          primary_span: 'checkout-api.db.sessions.query',
+          span_duration: '4.2s',
+          query: 'SELECT * FROM sessions WHERE user_id IN (...)',
+        }
+      },
+      {
+        id: 3,
+        name: 'Read DB Logs',
+        time: '180ms',
+        timestamp: '10:24:48.640',
+        status: 'complete',
+        metadata: {
+          log_lines: 5421,
+          error_signature: 'PG::LockTimeout',
+          error_count: 87,
+          sql_excerpt: 'Seq Scan on sessions (cost=1542.32..8921.54 rows=42341 width=512)',
+          missing_index: 'composite index on (user_id, last_active)',
+        }
+      },
+      {
+        id: 4,
+        name: 'Query Causal Graph',
+        time: '95ms',
+        timestamp: '10:24:48.735',
+        status: 'complete',
+        metadata: {
+          graph_depth: 3,
+          causal_confidence: 0.94,
+          edges_evaluated: 18,
+          root_cause: 'N+1 query pattern in sessions lookup',
+          propagation_path: 'HTTP 500 ← API timeout ← DB lock ← N+1 query',
+        }
+      },
+      {
+        id: 5,
+        name: 'Search Knowledge Base',
+        time: '210ms',
+        timestamp: '10:24:48.945',
+        status: 'complete',
+        metadata: {
+          matched_incident: 'RETRO-INC-4512',
+          similarity: 0.92,
+          incident_date: '2025-12-15',
+          resolution: 'Added composite index on sessions table',
+          effectiveness: '94% success rate in similar scenarios',
+        }
+      },
+    ];
+
+    const traceData = {
+      trace_id: '7f8a9b2c4e6d1a3f9e5c8d7b6a4f2e1c',
+      total_duration: 4237,
+      spans: [
+        { name: 'checkout-api.http.request', duration: 4237, start: 0, service: 'checkout-api' },
+        { name: 'checkout-api.db.sessions.query', duration: 4180, start: 42, service: 'checkout-api', error: true },
+        { name: 'sessions-db.query.execute', duration: 4120, start: 84, service: 'sessions-db', error: true },
+      ],
+    };
+
+    // ==================== MAIN APP COMPONENT ====================
+
+    function AutopilotSRE() {
+      const [state, dispatch] = useReducer(appReducer, initialState);
+      const { phase, showDictionary, expandedTreeNode, executing, executionProgress, showMicDrop,
+              selectedDAGNode, selectedTopologyNode, historicalIncidentOpen } = state;
+
+      // Execution progress simulation
+      useEffect(() => {
+        if (executing && executionProgress < 100) {
+          const timer = setTimeout(() => {
+            dispatch({ type: 'UPDATE_PROGRESS', payload: Math.min(executionProgress + 6.67, 100) });
+          }, 1000);
+          return () => clearTimeout(timer);
+        }
+        if (executionProgress >= 100 && executing) {
+          setTimeout(() => {
+            dispatch({ type: 'SHOW_SUCCESS' });
+          }, 500);
+        }
+      }, [executing, executionProgress]);
+
+      // Auto-show dictionary after triage starts
+      useEffect(() => {
+        if (phase === 'triage') {
+          const timer = setTimeout(() => dispatch({ type: 'TOGGLE_DICTIONARY', payload: true }), 1500);
+          const timer2 = setTimeout(() => dispatch({ type: 'SET_PHASE', payload: 'coach' }), 4000);
+          return () => { clearTimeout(timer); clearTimeout(timer2); };
+        }
+      }, [phase]);
+
+      // Auto-dismiss dictionary
+      useEffect(() => {
+        if (showDictionary) {
+          const timer = setTimeout(() => dispatch({ type: 'TOGGLE_DICTIONARY', payload: false }), 8000);
+          return () => clearTimeout(timer);
+        }
+      }, [showDictionary]);
+
+      const handleInvestigate = () => {
+        dispatch({ type: 'SET_PHASE', payload: 'triage' });
+      };
+
+      const handleApprove = () => {
+        dispatch({ type: 'START_EXECUTION' });
+      };
+
+      const executionSteps = [
+        { progress: 10, time: '[10:25:12]', text: 'kubectl exec -n production checkout-db -- psql -c "CREATE INDEX CONCURRENTLY..."', color: 'text-gray-400' },
+        { progress: 20, time: '[10:25:13]', text: '▸ Applying YAML configuration...', color: 'text-blue-400' },
+        { progress: 35, time: '[10:25:14]', text: 'Guardrails Gateway: verified target constraints. [AUTHORIZED]', color: 'text-gray-500' },
+        { progress: 50, time: '[10:25:16]', text: '▸ Verifying connection pooling...', color: 'text-cyan-400' },
+        { progress: 60, time: '[10:25:19]', text: 'Building index concurrently... 45% complete', color: 'text-blue-400' },
+        { progress: 70, time: '[10:25:22]', text: 'SUCCESS. Index curr_idx_composite created.', color: 'text-green-400' },
+        { progress: 85, time: '[10:25:25]', text: '▸ Apdex baseline recovered (0.42 → 0.98)', color: 'text-green-400' },
+        { progress: 100, time: '[10:26:01]', text: '» SLO VALIDATION COMPLETE', color: 'text-green-500 font-bold' },
+      ];
+
+      return (
+        <div className="h-screen w-screen flex flex-col bg-[#060A08] text-gray-200 overflow-hidden">
+          {/* Header */}
+          <Header phase={phase} />
+
+          {/* Main Content */}
+          <div className="flex flex-1 overflow-hidden">
+            {/* Phase Navigation Sidebar */}
+            {phase !== 'welcome' && <PhaseNavigation phase={phase} dispatch={dispatch} />}
+
+            {/* LEFT: Conversational Triage (35%) */}
+            <TriagePanel
+              phase={phase}
+              showDictionary={showDictionary}
+              showMicDrop={showMicDrop}
+              handleInvestigate={handleInvestigate}
+              dispatch={dispatch}
+            />
+
+            {/* RIGHT: Coach UI (65%) */}
+            <CoachPanel
+              phase={phase}
+              executionTree={executionTree}
+              expandedTreeNode={expandedTreeNode}
+              executionProgress={executionProgress}
+              executing={executing}
+              executionSteps={executionSteps}
+              handleApprove={handleApprove}
+              dispatch={dispatch}
+            />
+          </div>
+
+          {/* Modals */}
+          {selectedDAGNode && <DAGNodeModal node={selectedDAGNode} onClose={() => dispatch({ type: 'SELECT_DAG_NODE', payload: null })} />}
+          {selectedTopologyNode && <TopologyNodeModal node={selectedTopologyNode} onClose={() => dispatch({ type: 'SELECT_TOPOLOGY_NODE', payload: null })} />}
+          {historicalIncidentOpen && <HistoricalIncidentModal onClose={() => dispatch({ type: 'TOGGLE_HISTORICAL', payload: false })} />}
+        </div>
+      );
+    }
+
+    // ==================== SUB-COMPONENTS ====================
+
+    function Header({ phase }) {
+      return (
+        <header className="h-14 bg-[#090F0C] border-b border-gray-800 flex items-center justify-between px-6 shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-800 rounded flex items-center justify-center">
+              <span className="text-white font-bold text-sm">NR</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-xs uppercase tracking-wider text-white">Autopilot SRE Agent</span>
+              <span className="text-[10px] text-gray-500">Substrate v2026.09 • Production</span>
+            </div>
+          </div>
+          {phase !== 'welcome' && (
+            <div className="flex items-center gap-3 fade-in">
+              <div className="flex items-center gap-2 bg-[#1a1a1a] px-3 py-1.5 rounded border border-blue-500/30">
+                <div className="w-2 h-2 rounded-full bg-blue-500 pulse"></div>
+                <span className="text-[10px] font-mono text-blue-400 uppercase tracking-tight">Substrate Active</span>
+              </div>
+              <div className="h-4 w-[1px] bg-gray-700"></div>
+              <div className="text-[10px] text-gray-400 flex items-center gap-2">
+                <span className="opacity-60">AMG:</span>
+                <span className="text-green-500 font-bold">AUTHORIZED</span>
+              </div>
+            </div>
+          )}
+        </header>
+      );
+    }
+
+    function PhaseNavigation({ phase, dispatch }) {
+      const phases = [
+        { id: 'triage', label: 'Triage', icon: '🔍' },
+        { id: 'coach', label: 'Analysis', icon: '🧠' },
+        { id: 'execution', label: 'Execution', icon: '⚡' },
+        { id: 'success', label: 'Verification', icon: '✓' },
+      ];
+
+      const currentIndex = phases.findIndex(p => p.id === phase);
+
+      return (
+        <div className="w-16 bg-[#0a0a0a] border-r border-gray-800 flex flex-col items-center py-6 gap-4">
+          {phases.map((p, idx) => {
+            const isComplete = idx < currentIndex;
+            const isCurrent = p.id === phase;
+            const isUpcoming = idx > currentIndex;
+
+            return (
+              <button
+                key={p.id}
+                onClick={() => isComplete && dispatch({ type: 'SET_PHASE', payload: p.id })}
+                disabled={isUpcoming}
+                className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg transition-all ${
+                  isCurrent ? 'bg-blue-600 ring-2 ring-blue-400' :
+                  isComplete ? 'bg-green-900/30 hover:bg-green-900/50 cursor-pointer' :
+                  'bg-gray-900 opacity-30 cursor-not-allowed'
+                }`}
+                title={p.label}
+              >
+                {isComplete ? '✓' : p.icon}
+              </button>
+            );
+          })}
+        </div>
+      );
+    }
+
+    function TriagePanel({ phase, showDictionary, showMicDrop, handleInvestigate, dispatch }) {
+      return (
+        <main className="w-[35%] border-r border-gray-800 flex flex-col overflow-hidden bg-[#050505]">
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            {phase === 'welcome' && <WelcomeView handleInvestigate={handleInvestigate} />}
+            {(phase === 'triage' || phase === 'coach' || phase === 'execution' || phase === 'success') && (
+              <ConversationView
+                phase={phase}
+                showDictionary={showDictionary}
+                showMicDrop={showMicDrop}
+                dispatch={dispatch}
+              />
+            )}
+          </div>
+
+          {/* Bottom Input */}
+          <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] shrink-0">
+            <div className="relative flex items-center bg-[#050505] border border-gray-800 rounded p-1.5">
+              <div className="w-5 h-5 bg-[#111] border border-gray-700 rounded text-[10px] flex items-center justify-center text-gray-500 ml-1 shrink-0">/</div>
+              <input
+                type="text"
+                placeholder={phase === 'welcome' ? 'Ask about reasoning, context, or next steps...' : 'Ask follow-up questions...'}
+                className="bg-transparent border-none outline-none text-xs w-full px-2 py-1 placeholder:text-gray-600 text-gray-300"
+              />
+            </div>
+          </div>
+        </main>
+      );
+    }
+
+    function WelcomeView({ handleInvestigate }) {
+      return (
+        <div className="space-y-4 fade-in">
+          {/* OTel Welcome Box */}
+          <div className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-blue-500/30 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white mb-1">OpenTelemetry Context Initialized</h3>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  Your observability data is unified via OTel standards. Substrate will translate custom attributes into canonical schemas for deterministic reasoning.
+                </p>
+                <div className="mt-2 text-[10px] text-gray-500 font-mono">
+                  Coverage: 87% instrumented • Schema: v1.20.0
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Incident Alert */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 bg-red-950 text-red-500 text-[10px] font-bold rounded">CRITICAL</span>
+              <h2 className="text-lg font-semibold text-white">P95 Latency Spike: checkout-api</h2>
+            </div>
+            <div className="text-xs text-gray-400 font-mono">Impact: 1.2M users • Duration: 4m 12s</div>
+            <div className="grid grid-cols-3 gap-2 mt-2">
+              <div className="bg-[#111] border border-gray-800 rounded p-2">
+                <div className="text-[10px] text-gray-500 uppercase">Error Rate</div>
+                <div className="text-red-400 font-bold">23%</div>
+              </div>
+              <div className="bg-[#111] border border-gray-800 rounded p-2">
+                <div className="text-[10px] text-gray-500 uppercase">Revenue Risk</div>
+                <div className="text-amber-400 font-bold">$450K/hr</div>
+              </div>
+              <div className="bg-[#111] border border-gray-800 rounded p-2">
+                <div className="text-[10px] text-gray-500 uppercase">Apdex</div>
+                <div className="text-red-400 font-bold">0.98 → 0.42</div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">
+              P95 latency spiking to 4.2s. Substrate topology analysis detects upstream DB dependency chain with connection pool exhaustion.
+            </p>
+          </div>
+
+          {/* CTA Button */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Dynamic Input</label>
+            <button
+              onClick={handleInvestigate}
+              className="w-full text-left bg-[#0a0a0a] hover:bg-[#111] border border-gray-800 hover:border-blue-500/50 p-3 rounded text-xs text-gray-300 transition-all flex items-center gap-2"
+            >
+              <span>🔍</span>
+              <span>Investigate checkout-api latency spike and show root cause evidence</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function ConversationView({ phase, showDictionary, showMicDrop, dispatch }) {
+      return (
+        <div className="space-y-4">
+          {/* User Query */}
+          <div className="flex items-start gap-3 flex-row-reverse fade-in">
+            <div className="w-7 h-7 rounded bg-gray-800 border border-gray-700 flex items-center justify-center shrink-0">
+              <span className="text-[9px] font-bold text-gray-400">YOU</span>
+            </div>
+            <div className="bg-[#111] px-3 py-2 rounded text-xs text-gray-300 border border-gray-800 max-w-[85%]">
+              Investigate checkout-api latency spike and show root cause evidence
+            </div>
+          </div>
+
+          {/* Typing Indicator */}
+          {phase === 'triage' && (
+            <div className="flex items-start gap-3 fade-in">
+              <div className="w-7 h-7 rounded bg-blue-900/30 border border-blue-500/30 flex items-center justify-center shrink-0">
+                <div className="flex gap-0.5">
+                  <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce"></div>
+                  <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                </div>
+              </div>
+              <div className="text-xs text-gray-400 italic">Querying Substrate and analyzing telemetry...</div>
+            </div>
+          )}
+
+          {/* Data Dictionary Alert */}
+          {showDictionary && phase === 'triage' && (
+            <div className="slide-down bg-cyan-900/10 border-2 border-cyan-500/40 rounded-lg p-3 flex items-start gap-3">
+              <span className="text-2xl">💡</span>
+              <div>
+                <h4 className="text-xs font-bold text-cyan-400 mb-1">Substrate Semantic Normalization</h4>
+                <div className="text-[11px] text-cyan-200 leading-relaxed space-y-1">
+                  <div>Translated custom key <code className="bg-black/40 px-1 py-0.5 rounded font-mono">txn_id</code> → <code className="bg-black/40 px-1 py-0.5 rounded font-mono text-green-400">trace.id</code></div>
+                  <div>Translated <code className="bg-black/40 px-1 py-0.5 rounded font-mono">req_id</code> → <code className="bg-black/40 px-1 py-0.5 rounded font-mono text-green-400">span.id</code></div>
+                  <div>Translated <code className="bg-black/40 px-1 py-0.5 rounded font-mono">usr</code> → <code className="bg-black/40 px-1 py-0.5 rounded font-mono text-green-400">user.id</code></div>
+                  <div className="text-cyan-500 font-bold mt-2">Match confidence: 100% deterministic</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Agent Response */}
+          {(phase === 'coach' || phase === 'execution' || phase === 'success') && (
+            <div className="flex items-start gap-3 fade-in">
+              <div className="w-7 h-7 rounded bg-blue-900/30 border border-blue-500/30 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="space-y-2 max-w-[90%]">
+                <div className="bg-[#0a0a0a] px-4 py-3 rounded text-xs text-gray-300 border border-gray-800 leading-relaxed">
+                  I queried the <span className="text-blue-400 font-semibold">Causal Graph</span>. Root cause identified in:
+                  <br /><br />
+                  <div className="bg-black/50 border border-gray-800 rounded p-2 font-mono text-[10px] space-y-1">
+                    <div><span className="text-gray-500">trace.id:</span> <span className="text-cyan-400">7f8a9b2c4e6d1a3f9e5c8d7b6a4f2e1c</span></div>
+                    <div><span className="text-gray-500">span:</span> <span className="text-amber-400">checkout-api.db.sessions.query</span> <span className="text-red-400">(4.2s)</span></div>
+                    <div><span className="text-gray-500">entity:</span> <span className="text-blue-400">checkout-api</span> <span className="text-gray-600">(MXxBUE18QVBQTElDQVRJT058MTIzNDU2)</span></div>
+                  </div>
+                  <br />
+                  Cross-referenced <span className="text-purple-400 font-semibold">Incident Knowledge Base</span>: 92% match to historical N+1 pattern.
+                  Sending Proof Chain and remediation to Coach UI →
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Success Mic Drop */}
+          {phase === 'success' && showMicDrop && (
+            <div className="slide-up bg-green-500/5 border-2 border-green-500/40 rounded-lg p-4 flex items-start gap-3">
+              <svg className="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <h3 className="text-xs font-bold text-green-400 uppercase tracking-wider mb-1 flex items-center gap-2">
+                  <span>🎤 Resolution Applied</span>
+                </h3>
+                <p className="text-xs text-gray-300 leading-tight space-y-1">
+                  <div><strong>SLOs stabilized.</strong> P95 latency: 4.2s → 120ms (97% improvement)</div>
+                  <div>MTTR: <strong className="text-green-400">7m 42s</strong> (vs team avg: 45m)</div>
+                  <div>Reinforcement Learning Engine issued <span className="text-green-400 font-bold">+0.03 reward</span></div>
+                  <div>Causal Graph edge upgraded: <span className="font-mono text-cyan-400">0.88 → 0.91</span></div>
+                  <div className="text-gray-500 text-[10px] mt-2">30-day SLO monitoring enabled ✓</div>
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function CoachPanel({ phase, executionTree, expandedTreeNode, executionProgress, executing, executionSteps, handleApprove, dispatch }) {
+      if (phase === 'welcome' || phase === 'triage') {
+        return (
+          <aside className="flex-1 bg-[#050505] flex items-center justify-center">
+            <div className="text-center text-gray-600">
+              <svg className="w-16 h-16 mx-auto mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <p className="text-sm">Root Cause Analysis & Remediation</p>
+              <p className="text-xs mt-1">Will appear after investigation starts</p>
+            </div>
+          </aside>
+        );
+      }
+
+      if (phase === 'coach') {
+        return (
+          <aside className="flex-1 bg-[#050505] p-6 overflow-y-auto fade-in">
+            <CoachUIContent
+              executionTree={executionTree}
+              expandedTreeNode={expandedTreeNode}
+              handleApprove={handleApprove}
+              dispatch={dispatch}
+            />
+          </aside>
+        );
+      }
+
+      if (phase === 'execution' || phase === 'success') {
+        return (
+          <aside className="flex-1 bg-[#050505] p-6 overflow-y-auto fade-in">
+            <ExecutionView
+              executionProgress={executionProgress}
+              executing={executing}
+              executionSteps={executionSteps}
+            />
+          </aside>
+        );
+      }
+
+      return null;
+    }
+
+    function CoachUIContent({ executionTree, expandedTreeNode, handleApprove, dispatch }) {
+      return (
+        <div className="h-full flex flex-col">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-[11px] font-bold text-white uppercase tracking-widest">Root Cause Analysis & Remediation</h3>
+            <span className="text-[10px] px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full font-mono">Confidence: 94%</span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 flex-1 min-h-0">
+            {/* Pane A: Investigation Steps */}
+            <div className="col-span-1 flex flex-col">
+              <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Investigation Steps</h4>
+              <div className="space-y-1 flex-1 overflow-y-auto">
+                {executionTree.map(node => (
+                  <ExecutionTreeNode
+                    key={node.id}
+                    node={node}
+                    expanded={expandedTreeNode === node.id}
+                    onToggle={() => dispatch({ type: 'TOGGLE_TREE_NODE', payload: node.id })}
+                  />
+                ))}
+                <div className="mt-4 pt-3 border-t border-gray-800">
+                  <div className="text-[10px] text-gray-500 uppercase mb-1">Total Time</div>
+                  <div className="text-sm font-bold text-green-400">1.2s</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pane B: Failure Analysis */}
+            <div className="col-span-1 flex flex-col">
+              <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Failure Analysis</h4>
+              <div className="flex-1 flex flex-col gap-3 overflow-y-auto">
+                {/* Topology Graph */}
+                <div className="bg-[#0a0a0a] border border-gray-800 rounded-lg p-3">
+                  <div className="text-[9px] text-gray-500 uppercase mb-2">Service Topology</div>
+                  <TopologyGraph dispatch={dispatch} />
+                </div>
+
+                {/* Causal DAG */}
+                <div className="bg-[#0a0a0a] border border-gray-800 rounded-lg p-4 flex-1">
+                  <div className="text-[9px] text-gray-500 uppercase mb-2">Causal Proof Chain</div>
+                  <CausalDAG dispatch={dispatch} />
+                </div>
+
+                {/* Living Runbooks Card */}
+                <div className="bg-blue-900/10 border border-blue-500/30 rounded p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg className="w-3 h-3 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-[10px] font-bold text-blue-400 uppercase">Living Runbooks (Local RAG)</span>
+                  </div>
+                  <p className="text-[10px] text-blue-200 leading-relaxed">
+                    <strong className="text-blue-300">92% Match</strong> to{' '}
+                    <button
+                      onClick={() => dispatch({ type: 'TOGGLE_HISTORICAL', payload: true })}
+                      className="hover:underline font-mono text-cyan-400"
+                    >
+                      RETRO-INC-4512
+                    </button>
+                    <br />
+                    <span className="text-gray-400 text-[9px]">Resolved Dec 15, 2025 with identical signature</span>
+                  </p>
+                </div>
+
+                {/* Pattern Corpus Card */}
+                <div className="bg-purple-900/10 border border-purple-500/30 rounded p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg className="w-3 h-3 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-[10px] font-bold text-purple-400 uppercase flex items-center gap-1">
+                      Cross-Customer Pattern Match
+                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-purple-200 leading-relaxed">
+                    Pattern <code className="bg-black/40 px-1 py-0.5 rounded font-mono text-purple-300">db_n+1_query_timeout_v3</code> detected.
+                    <br />
+                    <strong className="text-purple-300">45 production incidents</strong> across opted-in enterprises (last 90 days).
+                    <br />
+                    <span className="text-gray-400 text-[9px]">Anonymized • Privacy-preserving</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Pane C: Bounded Autonomy Gate */}
+            <div className="col-span-1 flex flex-col">
+              <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Bounded Autonomy Gate</h4>
+
+              {/* Option Comparison */}
+              <div className="space-y-2 mb-4">
+                <div className="bg-red-900/10 border border-red-500/30 rounded p-2 opacity-50">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-bold text-red-400 uppercase">Option A: Add Redis Cache</span>
+                    <span className="text-[9px] font-mono text-red-400">Score: 0.65</span>
+                  </div>
+                  <p className="text-[9px] text-gray-500">Reduces DB load but doesn't fix root cause. Cache invalidation complexity.</p>
+                </div>
+
+                <div className="bg-green-900/10 border-2 border-green-500/50 rounded p-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-bold text-green-400 uppercase flex items-center gap-1">
+                      Option B: Add Composite Index ⭐
+                    </span>
+                    <span className="text-[9px] font-mono text-green-400">Score: 0.88</span>
+                  </div>
+                  <p className="text-[9px] text-gray-400">Addresses root N+1 pattern. Historical correlation shows 94% success rate.</p>
+                </div>
+              </div>
+
+              {/* Code Diff */}
+              <div className="flex-1 bg-black border border-gray-800 rounded overflow-hidden mb-4">
+                <div className="bg-gray-900 px-3 py-1.5 border-b border-gray-800 flex items-center justify-between">
+                  <span className="text-[9px] font-mono text-gray-400">sessions-db-migration.sql</span>
+                  <span className="text-[8px] text-green-500">+2 lines</span>
+                </div>
+                <div className="p-3 font-mono text-[10px] space-y-1">
+                  <div className="text-gray-600">@@ -0,0 +1,2 @@</div>
+                  <div className="diff-line-add text-green-400 px-1 rounded pl-2">
+                    + CREATE INDEX CONCURRENTLY curr_idx_composite
+                  </div>
+                  <div className="diff-line-add text-green-400 px-1 rounded pl-2">
+                    + ON sessions (user_id, last_active);
+                  </div>
+                </div>
+              </div>
+
+              {/* Approve Button */}
+              <button
+                onClick={handleApprove}
+                className="w-full py-2.5 bg-green-600 hover:bg-green-500 text-white font-bold text-xs rounded transition-all flex items-center justify-center gap-2 bounce"
+              >
+                <span>Approve & Execute Option B</span>
+                <span className="text-[9px] opacity-70">+0.03 RL Reward</span>
+              </button>
+
+              {/* RLHF Feedback */}
+              <div className="mt-4 pt-4 border-t border-gray-800">
+                <div className="text-[9px] text-gray-500 uppercase mb-2 text-center">Substrate Learning Feedback</div>
+                <div className="flex gap-2">
+                  <button className="flex-1 py-2 bg-[#1a1a1a] border border-gray-800 rounded hover:border-green-500 transition-all flex flex-col items-center justify-center gap-1">
+                    <span className="text-xl">👍</span>
+                    <span className="text-[8px] text-gray-500 font-bold uppercase">Reinforce</span>
+                  </button>
+                  <button className="flex-1 py-2 bg-[#1a1a1a] border border-gray-800 rounded hover:border-red-500 transition-all flex flex-col items-center justify-center gap-1">
+                    <span className="text-xl">👎</span>
+                    <span className="text-[8px] text-gray-500 font-bold uppercase">Correction</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function ExecutionTreeNode({ node, expanded, onToggle }) {
+      return (
+        <div className="border-l-2 border-gray-800 pl-3">
+          <div
+            onClick={onToggle}
+            className="tree-node p-2 rounded transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
+                <svg className="w-2.5 h-2.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
+                </svg>
+              </div>
+              <span className="text-[11px] font-medium text-gray-300">{node.name}</span>
+            </div>
+            <div className="flex items-center gap-2 ml-6 mt-0.5">
+              <span className="text-[9px] text-gray-500 font-mono">{node.time}</span>
+              <span className="text-[8px] text-gray-600 font-mono">{node.timestamp}</span>
+            </div>
+          </div>
+          {expanded && (
+            <div className="mt-2 ml-6 bg-black/50 border border-gray-800 rounded p-2 fade-in">
+              <pre className="text-[9px] text-gray-400 font-mono overflow-x-auto">
+                {JSON.stringify(node.metadata, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function TopologyGraph({ dispatch }) {
+      const nodes = [
+        { id: 'user', label: 'User', x: 100, y: 20, color: '#6b7280' },
+        { id: 'lb', label: 'Load Balancer', x: 100, y: 60, color: '#3b82f6' },
+        { id: 'api', label: 'checkout-api', x: 100, y: 100, color: '#ef4444', error: true },
+        { id: 'db', label: 'sessions-db', x: 100, y: 140, color: '#f59e0b', error: true },
+      ];
+
+      const edges = [
+        { from: 'user', to: 'lb', label: '', color: '#6b7280' },
+        { from: 'lb', to: 'api', label: '', color: '#ef4444' },
+        { from: 'api', to: 'db', label: '4.2s', color: '#ef4444' },
+      ];
+
+      return (
+        <svg className="w-full h-32" viewBox="0 0 200 160">
+          {/* Edges */}
+          {edges.map((edge, idx) => {
+            const from = nodes.find(n => n.id === edge.from);
+            const to = nodes.find(n => n.id === edge.to);
+            return (
+              <g key={idx}>
+                <line
+                  x1={from.x}
+                  y1={from.y + 12}
+                  x2={to.x}
+                  y2={to.y - 12}
+                  stroke={edge.color}
+                  strokeWidth="2"
+                  markerEnd="url(#arrow)"
+                />
+                {edge.label && (
+                  <text x={from.x + 10} y={(from.y + to.y) / 2} fill={edge.color} fontSize="8" fontFamily="monospace">
+                    {edge.label}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+
+          <defs>
+            <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 10 3, 0 6" fill="#ef4444" />
+            </marker>
+          </defs>
+
+          {/* Nodes */}
+          {nodes.map(node => (
+            <g
+              key={node.id}
+              className="topology-node cursor-pointer"
+              onClick={() => dispatch({ type: 'SELECT_TOPOLOGY_NODE', payload: node })}
+            >
+              <rect
+                x={node.x - 35}
+                y={node.y - 12}
+                width="70"
+                height="24"
+                fill={node.color}
+                opacity="0.2"
+                stroke={node.color}
+                strokeWidth="2"
+                rx="4"
+              />
+              <text
+                x={node.x}
+                y={node.y + 4}
+                textAnchor="middle"
+                fill={node.color}
+                fontSize="10"
+                fontWeight="600"
+              >
+                {node.label}
+              </text>
+            </g>
+          ))}
+        </svg>
+      );
+    }
+
+    function CausalDAG({ dispatch }) {
+      return (
+        <svg className="w-full h-full" viewBox="0 0 200 300">
+          <line x1="100" y1="60" x2="100" y2="120" stroke="#06b6d4" strokeWidth="2" className="dag-edge" markerEnd="url(#arrowhead)" />
+          <line x1="100" y1="180" x2="100" y2="240" stroke="#06b6d4" strokeWidth="2" className="dag-edge" markerEnd="url(#arrowhead)" />
+
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 10 3, 0 6" fill="#06b6d4" />
+            </marker>
+            <radialGradient id="symptom-grad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#dc2626" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#dc2626" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="cause-grad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="mitigation-grad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+
+          {/* Symptom Node */}
+          <g className="dag-node" onClick={() => dispatch({ type: 'SELECT_DAG_NODE', payload: { id: 'symptom', name: 'HTTP 500 Symptom', trace_id: '7f8a9b2c4e6d1a3f9e5c8d7b6a4f2e1c' } })}>
+            <circle cx="100" cy="40" r="35" fill="url(#symptom-grad)" stroke="#dc2626" strokeWidth="2" />
+            <text x="100" y="35" textAnchor="middle" fill="#ef4444" fontSize="9" fontWeight="bold">HTTP 500</text>
+            <text x="100" y="48" textAnchor="middle" fill="#ef4444" fontSize="8">Symptom</text>
+          </g>
+
+          <text x="110" y="90" fill="#06b6d4" fontSize="9" fontFamily="monospace" fontWeight="500">P = 0.94</text>
+
+          {/* Cause Node */}
+          <g className="dag-node" onClick={() => dispatch({ type: 'SELECT_DAG_NODE', payload: { id: 'cause', name: 'N+1 Query Upstream Cause', sql: 'SELECT * FROM sessions WHERE...' } })}>
+            <circle cx="100" cy="150" r="35" fill="url(#cause-grad)" stroke="#f59e0b" strokeWidth="2" />
+            <text x="100" y="145" textAnchor="middle" fill="#fbbf24" fontSize="9" fontWeight="bold">N+1 Query</text>
+            <text x="100" y="158" textAnchor="middle" fill="#fbbf24" fontSize="8">Upstream Cause</text>
+          </g>
+
+          <text x="110" y="210" fill="#06b6d4" fontSize="9" fontFamily="monospace" fontWeight="500">P = 0.88</text>
+
+          {/* Mitigation Node */}
+          <g className="dag-node" onClick={() => dispatch({ type: 'SELECT_DAG_NODE', payload: { id: 'mitigation', name: 'Add Composite Index Mitigation', confidence: 0.88 } })}>
+            <circle cx="100" cy="270" r="35" fill="url(#mitigation-grad)" stroke="#06b6d4" strokeWidth="2" />
+            <text x="100" y="265" textAnchor="middle" fill="#06b6d4" fontSize="9" fontWeight="bold">Add Index</text>
+            <text x="100" y="278" textAnchor="middle" fill="#06b6d4" fontSize="8">Mitigation</text>
+          </g>
+        </svg>
+      );
+    }
+
+    function ExecutionView({ executionProgress, executing, executionSteps }) {
+      const getProgressColor = (progress) => {
+        if (progress < 33) return 'from-blue-500 to-blue-600';
+        if (progress < 67) return 'from-cyan-500 to-cyan-600';
+        return 'from-green-500 to-green-600';
+      };
+
+      return (
+        <div className="flex-1 flex flex-col">
+          <div className="bg-[#0a0a0a] border border-gray-800 rounded-lg p-6 flex-1 flex flex-col">
+            <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-800 shrink-0">
+              <span className="text-blue-400 font-bold tracking-wider text-xs font-mono">SUBSTRATE_EXECUTION_LOG</span>
+              <span className="text-gray-600 text-[10px] font-mono">PID: 9024</span>
+            </div>
+
+            <div className="flex-1 space-y-3 overflow-y-auto font-mono text-[11px]">
+              {executionSteps.map((step, idx) => (
+                executionProgress >= step.progress && (
+                  <div key={idx} className={`${step.color} fade-in`}>
+                    <span className="text-gray-600">{step.time}</span> {step.text}
+                  </div>
+                )
+              ))}
+
+              {executionProgress >= 100 && (
+                <div className="mt-4 pt-4 border-t border-gray-800 fade-in">
+                  <div className="text-gray-400 space-y-2">
+                    <div><span className="text-gray-600">[10:26:02]</span> Monitoring P95 latency for 30 days...</div>
+                    <div><span className="text-gray-600">[10:26:05]</span> Current P95: <span className="text-green-400 font-bold">120ms</span> ✓</div>
+                    <div><span className="text-gray-600">[10:26:06]</span> Error rate: <span className="text-green-400">0.1%</span> (down from 23%)</div>
+                    <div><span className="text-gray-600">[10:26:07]</span> Apdex recovered: <span className="text-green-400">0.98</span></div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Progress Bar */}
+            {executing && executionProgress < 100 && (
+              <div className="mt-6 pt-4 border-t border-gray-800 shrink-0">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] text-gray-400 font-mono">Execution Progress</span>
+                  <span className="text-[10px] text-cyan-400 font-mono">{Math.round(executionProgress)}%</span>
+                </div>
+                <div className="h-2 bg-gray-900 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full bg-gradient-to-r ${getProgressColor(executionProgress)} transition-all duration-1000`}
+                    style={{width: `${executionProgress}%`}}
+                  ></div>
+                </div>
+                <p className="text-[10px] text-gray-500 mt-2 flex items-center gap-2">
+                  <span className="inline-block w-1 h-1 bg-cyan-500 rounded-full pulse"></span>
+                  Live telemetry validation in progress...
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ==================== MODALS ====================
+
+    function DAGNodeModal({ node, onClose }) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" onClick={onClose}>
+          <div className="bg-[#0a0a0a] border-2 border-cyan-500/50 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto mx-4 slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white">{node.name}</h3>
+              <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {node.id === 'symptom' && (
+              <div className="space-y-4">
+                <div className="bg-black/50 border border-gray-800 rounded p-3">
+                  <div className="text-xs text-gray-500 uppercase mb-2">Trace Details</div>
+                  <div className="font-mono text-xs space-y-1 text-gray-300">
+                    <div><span className="text-gray-500">trace.id:</span> {node.trace_id}</div>
+                    <div><span className="text-gray-500">duration:</span> <span className="text-red-400">4237ms</span></div>
+                    <div><span className="text-gray-500">error_count:</span> <span className="text-red-400">87</span></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/50 border border-gray-800 rounded p-3">
+                  <div className="text-xs text-gray-500 uppercase mb-2">Distributed Trace</div>
+                  {traceData.spans.map((span, idx) => (
+                    <div key={idx} className="mb-2">
+                      <div className="text-[10px] font-mono text-gray-400">{span.name}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="flex-1 h-4 bg-gray-900 rounded overflow-hidden relative">
+                          <div
+                            className={`absolute h-full ${span.error ? 'bg-red-500' : 'bg-blue-500'}`}
+                            style={{
+                              left: `${(span.start / traceData.total_duration) * 100}%`,
+                              width: `${(span.duration / traceData.total_duration) * 100}%`
+                            }}
+                          ></div>
+                        </div>
+                        <span className="text-[10px] font-mono text-gray-500 w-16 text-right">{span.duration}ms</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <a
+                  href={`https://one.newrelic.com/traces/${node.trace_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+                >
+                  View in New Relic →
+                </a>
+              </div>
+            )}
+
+            {node.id === 'cause' && (
+              <div className="space-y-4">
+                <div className="bg-black/50 border border-gray-800 rounded p-3">
+                  <div className="text-xs text-gray-500 uppercase mb-2">SQL Query</div>
+                  <div className="font-mono text-[10px] text-amber-300">
+                    {node.sql}
+                  </div>
+                </div>
+                <div className="bg-black/50 border border-gray-800 rounded p-3">
+                  <div className="text-xs text-gray-500 uppercase mb-2">Query Plan Analysis</div>
+                  <div className="text-[10px] text-gray-400 space-y-1">
+                    <div>Seq Scan on sessions (cost=1542.32..8921.54)</div>
+                    <div className="text-red-400">⚠ Missing index: (user_id, last_active)</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {node.id === 'mitigation' && (
+              <div className="space-y-4">
+                <div className="bg-black/50 border border-gray-800 rounded p-3">
+                  <div className="text-xs text-gray-500 uppercase mb-2">Solution Confidence</div>
+                  <div className="text-2xl font-bold text-cyan-400">{(node.confidence * 100).toFixed(0)}%</div>
+                  <div className="text-xs text-gray-400 mt-1">Based on 1,247 similar incidents</div>
+                </div>
+                <div className="bg-black/50 border border-gray-800 rounded p-3">
+                  <div className="text-xs text-gray-500 uppercase mb-2">Expected Impact</div>
+                  <div className="text-xs text-gray-300 space-y-1">
+                    <div>Query time: 4.2s → <span className="text-green-400">120ms</span> (97% improvement)</div>
+                    <div>DB load: -78% connection pool pressure</div>
+                    <div>Index size: ~42MB (minimal impact)</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function TopologyNodeModal({ node, onClose }) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" onClick={onClose}>
+          <div className="bg-[#0a0a0a] border-2 border-blue-500/50 rounded-lg p-6 max-w-xl w-full max-h-[80vh] overflow-y-auto mx-4 slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white">{node.label}</h3>
+              <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-black/50 border border-gray-800 rounded p-3">
+                <div className="text-xs text-gray-500 uppercase mb-2">Golden Signals</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <div className="text-[10px] text-gray-500">Traffic</div>
+                    <div className="text-sm font-bold text-white">1,247 req/s</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-gray-500">Errors</div>
+                    <div className={`text-sm font-bold ${node.error ? 'text-red-400' : 'text-green-400'}`}>
+                      {node.error ? '23%' : '0.1%'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-gray-500">Duration (P95)</div>
+                    <div className={`text-sm font-bold ${node.error ? 'text-red-400' : 'text-green-400'}`}>
+                      {node.error ? '4.2s' : '120ms'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-gray-500">Saturation</div>
+                    <div className="text-sm font-bold text-amber-400">78%</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-black/50 border border-gray-800 rounded p-3">
+                <div className="text-xs text-gray-500 uppercase mb-2">Entity Info</div>
+                <div className="font-mono text-[10px] text-gray-300 space-y-1">
+                  <div><span className="text-gray-500">entity.guid:</span> MXxBUE18QVBQTElDQVRJT058MTIzNDU2</div>
+                  <div><span className="text-gray-500">version:</span> v2.1.4</div>
+                  <div><span className="text-gray-500">instances:</span> 3 pods</div>
+                </div>
+              </div>
+
+              <a
+                href="https://one.newrelic.com/nr1-core"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+              >
+                View in New Relic →
+              </a>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function HistoricalIncidentModal({ onClose }) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" onClick={onClose}>
+          <div className="bg-[#0a0a0a] border-2 border-purple-500/50 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto mx-4 slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white">RETRO-INC-4512</h3>
+              <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-black/50 border border-gray-800 rounded p-3">
+                <div className="text-xs text-gray-500 uppercase mb-2">Incident Details</div>
+                <div className="text-xs text-gray-300 space-y-1">
+                  <div><span className="text-gray-500">Date:</span> December 15, 2025</div>
+                  <div><span className="text-gray-500">Owner:</span> @sarah.chen</div>
+                  <div><span className="text-gray-500">Duration:</span> 47 minutes</div>
+                  <div><span className="text-gray-500">Severity:</span> P1</div>
+                </div>
+              </div>
+
+              <div className="bg-black/50 border border-gray-800 rounded p-3">
+                <div className="text-xs text-gray-500 uppercase mb-2">Similarity Breakdown</div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400">Query Pattern</span>
+                    <span className="text-xs font-mono text-green-400">98%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400">Error Signature</span>
+                    <span className="text-xs font-mono text-green-400">87%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400">Temporal Pattern</span>
+                    <span className="text-xs font-mono text-amber-400">89%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400">Context Match</span>
+                    <span className="text-xs font-mono text-green-400">91%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-black/50 border border-gray-800 rounded p-3">
+                <div className="text-xs text-gray-500 uppercase mb-2">Resolution Applied</div>
+                <div className="font-mono text-[10px] text-gray-300 bg-black/50 p-2 rounded">
+                  CREATE INDEX CONCURRENTLY session_lookup_idx<br />
+                  ON sessions (user_id, last_active);<br />
+                  <br />
+                  <span className="text-green-400">-- Success rate: 94% in similar scenarios</span>
+                </div>
+              </div>
+
+              <div className="bg-green-900/10 border border-green-500/30 rounded p-3">
+                <div className="text-xs font-bold text-green-400 mb-1">Resolution Verified</div>
+                <div className="text-xs text-gray-300">
+                  P95 latency recovered from 4.8s to 110ms. No regressions detected over 30-day monitoring period.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==================== RENDER APP ====================
+
+    ReactDOM.render(<AutopilotSRE />, document.getElementById('root'));
+  </script>
+</body>
+</html>
