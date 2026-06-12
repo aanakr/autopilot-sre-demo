@@ -214,10 +214,8 @@
     };
 
     function appReducer(state, action) {
-      console.log('Reducer action:', action.type, action.payload);
       switch (action.type) {
         case 'START_INVESTIGATION':
-          console.log('Starting investigation, transitioning to analysis phase');
           return {
             ...state,
             phase: 'analysis',
@@ -234,11 +232,9 @@
           };
 
         case 'START_TREE_ANIMATION':
-          console.log('Tree animation started flag set');
           return { ...state, treeAnimationStarted: true };
 
         case 'UPDATE_TREE_NODE':
-          console.log('Updating tree node:', action.payload);
           return {
             ...state,
             executionTree: state.executionTree.map(node =>
@@ -247,7 +243,6 @@
           };
 
         case 'SHOW_COACH':
-          console.log('Transitioning to coach phase');
           return {
             ...state,
             phase: 'coach',
@@ -1011,27 +1006,21 @@
       const { phase, url, executionTree, showHistoricalIncident, showPatternCorpus, showDAGNodeDetail, selectedDAGNode,
               executionProgress, countdownTimer, treeAnimationStarted } = state;
 
-      // Progressive tree node completion - FIXED: Only run once
+      // Progressive tree node completion
       const treeTimersRef = useRef([]);
       const animationSetupRef = useRef(false);
 
       useEffect(() => {
-        console.log('Tree animation useEffect triggered:', { phase, treeAnimationStarted, treeLength: executionTree.length, setupDone: animationSetupRef.current });
-
         if (phase === 'analysis' && !animationSetupRef.current && executionTree.length > 0) {
-          console.log('Starting tree animation...');
           animationSetupRef.current = true;
           dispatch({ type: 'START_TREE_ANIMATION' });
 
           executionTree.forEach((node, idx) => {
             const timer = setTimeout(() => {
-              console.log(`Node ${idx + 1} loading:`, node.text);
               dispatch({ type: 'UPDATE_TREE_NODE', payload: { id: node.id, status: 'loading' } });
               const completeTimer = setTimeout(() => {
-                console.log(`Node ${idx + 1} complete:`, node.text);
                 dispatch({ type: 'UPDATE_TREE_NODE', payload: { id: node.id, status: 'complete' } });
                 if (idx === executionTree.length - 1) {
-                  console.log('All nodes complete, showing coach in 1s...');
                   setTimeout(() => dispatch({ type: 'SHOW_COACH' }), 1000);
                 }
               }, 2000);
