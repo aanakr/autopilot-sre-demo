@@ -642,11 +642,18 @@
                   <span>🎤 Resolution Applied</span>
                 </h3>
                 <p className="text-xs text-gray-300 leading-tight space-y-1">
-                  <div><strong>SLOs stabilized.</strong> P95 latency: 4.2s → 120ms (97% improvement)</div>
+                  <div><strong>SLOs stabilized.</strong> P95 latency: <span className="line-through text-red-400">4.2s</span> → <strong className="text-green-400">120ms</strong> (97% improvement)</div>
                   <div>MTTR: <strong className="text-green-400">7m 42s</strong> (vs team avg: 45m)</div>
-                  <div>Reinforcement Learning Engine issued <span className="text-green-400 font-bold">+0.03 reward</span></div>
-                  <div>Causal Graph edge upgraded: <span className="font-mono text-cyan-400">0.88 → 0.91</span></div>
-                  <div className="text-gray-500 text-[10px] mt-2">30-day SLO monitoring enabled ✓</div>
+                  <div className="flex items-center gap-2">
+                    <span>Reinforcement Learning Engine issued</span>
+                    <span className="text-green-400 font-bold bounce">+0.03 reward</span>
+                    <span className="text-[10px] text-green-500 animate-pulse">✓</span>
+                  </div>
+                  <div>Causal Graph edge upgraded: <span className="font-mono text-gray-400">0.88</span> → <span className="font-mono text-cyan-400 font-bold">0.91</span></div>
+                  <div className="text-gray-500 text-[10px] mt-2 flex items-center gap-1">
+                    <span className="text-green-500">●</span>
+                    30-day SLO monitoring enabled
+                  </div>
                 </p>
               </div>
             </div>
@@ -954,6 +961,7 @@
               className="topology-node cursor-pointer"
               onClick={() => dispatch({ type: 'SELECT_TOPOLOGY_NODE', payload: node })}
             >
+              <title>{node.label} - Click for metrics and health status</title>
               <rect
                 x={node.x - 35}
                 y={node.y - 12}
@@ -1007,6 +1015,7 @@
 
           {/* Symptom Node */}
           <g className="dag-node" onClick={() => dispatch({ type: 'SELECT_DAG_NODE', payload: { id: 'symptom', name: 'HTTP 500 Symptom', trace_id: '7f8a9b2c4e6d1a3f9e5c8d7b6a4f2e1c' } })}>
+            <title>HTTP 500 Errors - Click for trace details (87 errors, 4237ms avg)</title>
             <circle cx="100" cy="40" r="35" fill="url(#symptom-grad)" stroke="#dc2626" strokeWidth="2" />
             <text x="100" y="35" textAnchor="middle" fill="#ef4444" fontSize="9" fontWeight="bold">HTTP 500</text>
             <text x="100" y="48" textAnchor="middle" fill="#ef4444" fontSize="8">Symptom</text>
@@ -1016,6 +1025,7 @@
 
           {/* Cause Node */}
           <g className="dag-node" onClick={() => dispatch({ type: 'SELECT_DAG_NODE', payload: { id: 'cause', name: 'N+1 Query Upstream Cause', sql: 'SELECT * FROM sessions WHERE...' } })}>
+            <title>N+1 Query Pattern - Click for SQL query and execution plan</title>
             <circle cx="100" cy="150" r="35" fill="url(#cause-grad)" stroke="#f59e0b" strokeWidth="2" />
             <text x="100" y="145" textAnchor="middle" fill="#fbbf24" fontSize="9" fontWeight="bold">N+1 Query</text>
             <text x="100" y="158" textAnchor="middle" fill="#fbbf24" fontSize="8">Upstream Cause</text>
@@ -1025,6 +1035,7 @@
 
           {/* Mitigation Node */}
           <g className="dag-node" onClick={() => dispatch({ type: 'SELECT_DAG_NODE', payload: { id: 'mitigation', name: 'Add Composite Index Mitigation', confidence: 0.88 } })}>
+            <title>Add Composite Index - 88% confidence, 97% improvement expected</title>
             <circle cx="100" cy="270" r="35" fill="url(#mitigation-grad)" stroke="#06b6d4" strokeWidth="2" />
             <text x="100" y="265" textAnchor="middle" fill="#06b6d4" fontSize="9" fontWeight="bold">Add Index</text>
             <text x="100" y="278" textAnchor="middle" fill="#06b6d4" fontSize="8">Mitigation</text>
