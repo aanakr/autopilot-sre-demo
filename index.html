@@ -281,7 +281,7 @@
     function AutopilotSRE() {
       const [state, dispatch] = useReducer(appReducer, initialState);
       const { phase, showDictionary, expandedTreeNode, executing, executionProgress, showMicDrop,
-              selectedDAGNode, selectedTopologyNode, historicalIncidentOpen } = state;
+              selectedDAGNode, selectedTopologyNode, historicalIncidentOpen, loading } = state;
 
       // Execution progress simulation
       useEffect(() => {
