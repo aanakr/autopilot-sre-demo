@@ -1013,10 +1013,14 @@
 
       // Progressive tree node completion - FIXED: Only run once
       const treeTimersRef = useRef([]);
+      const animationSetupRef = useRef(false);
+
       useEffect(() => {
-        console.log('Tree animation useEffect triggered:', { phase, treeAnimationStarted, treeLength: executionTree.length });
-        if (phase === 'analysis' && !treeAnimationStarted && executionTree.length > 0) {
+        console.log('Tree animation useEffect triggered:', { phase, treeAnimationStarted, treeLength: executionTree.length, setupDone: animationSetupRef.current });
+
+        if (phase === 'analysis' && !animationSetupRef.current && executionTree.length > 0) {
           console.log('Starting tree animation...');
+          animationSetupRef.current = true;
           dispatch({ type: 'START_TREE_ANIMATION' });
 
           executionTree.forEach((node, idx) => {
@@ -1037,11 +1041,11 @@
           });
         }
 
-        return () => {
-          treeTimersRef.current.forEach(timer => clearTimeout(timer));
-          treeTimersRef.current = [];
-        };
-      }, [phase, treeAnimationStarted, executionTree.length]);
+        // Reset the flag when leaving analysis phase
+        if (phase !== 'analysis') {
+          animationSetupRef.current = false;
+        }
+      }, [phase, executionTree.length]);
 
       // Execution progress - FIXED: Prevent multiple intervals
       const progressIntervalRef = useRef(null);
