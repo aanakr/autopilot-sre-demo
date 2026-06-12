@@ -1335,7 +1335,8 @@
 
     // ==================== RENDER APP ====================
 
-    ReactDOM.render(<AutopilotSRE />, document.getElementById('root'));
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<AutopilotSRE />);
   </script>
 </body>
 </html>
