@@ -147,7 +147,7 @@
     </div>
   </div>
 
-  <script type="text/babel" data-type="module">
+  <script type="text/babel">
     console.log('Script executing...');
     const { useState, useEffect, useReducer, useRef } = React;
     console.log('React destructured successfully');
@@ -1167,25 +1167,9 @@
     }
 
     // ==================== RENDER ====================
-    // Ensure DOM is ready and all dependencies loaded
-    if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
-      console.error('React or ReactDOM not loaded');
-      document.body.innerHTML = '<div style="color:white;padding:20px;font-family:sans-serif;">Error: React libraries failed to load. Please refresh the page.</div>';
-    } else {
-      try {
-        const rootElement = document.getElementById('root');
-        if (!rootElement) {
-          console.error('Root element not found');
-        } else {
-          const root = ReactDOM.createRoot(rootElement);
-          root.render(<AutopilotApp />);
-          console.log('Autopilot app rendered successfully');
-        }
-      } catch (error) {
-        console.error('Error rendering app:', error);
-        document.body.innerHTML = '<div style="color:white;padding:20px;font-family:sans-serif;">Error rendering application: ' + error.message + '</div>';
-      }
-    }
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<AutopilotApp />);
+    console.log('Autopilot app rendered successfully');
   </script>
 </body>
 </html>
