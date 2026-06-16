@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-obsidian-600;
+  }
+
+  body {
+    @apply bg-obsidian-900 text-gray-300;
+  }
+
+  /* Custom scrollbar for dark theme */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-obsidian-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-obsidian-600 rounded;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-obsidian-500;
+  }
+}
+
+@layer components {
+  /* Reusable card component */
+  .card {
+    @apply bg-obsidian-800 border border-obsidian-600 rounded-lg p-6 transition-colors;
+  }
+
+  .card-hover {
+    @apply card hover:border-electric-cyan;
+  }
+
+  /* Button styles */
+  .btn-primary {
+    @apply bg-electric-green text-obsidian-900 px-4 py-2 rounded-md font-semibold hover:bg-electric-cyan transition-colors;
+  }
+
+  .btn-secondary {
+    @apply bg-obsidian-700 text-gray-300 px-4 py-2 rounded-md font-semibold hover:bg-obsidian-600 transition-colors border border-obsidian-500;
+  }
+
+  .btn-danger {
+    @apply bg-danger text-white px-4 py-2 rounded-md font-semibold hover:bg-red-600 transition-colors;
+  }
+
+  /* Link styles */
+  .link {
+    @apply text-electric-cyan hover:text-electric-green transition-colors underline-offset-4 hover:underline;
+  }
+
+  /* Badge styles */
+  .badge-success {
+    @apply bg-success/20 text-success px-2 py-1 rounded text-xs font-semibold;
+  }
+
+  .badge-danger {
+    @apply bg-danger/20 text-danger px-2 py-1 rounded text-xs font-semibold;
+  }
+
+  .badge-warning {
+    @apply bg-warning/20 text-warning px-2 py-1 rounded text-xs font-semibold;
+  }
+
+  /* Confidence score styles */
+  .confidence-score {
+    @apply font-mono text-electric-green font-bold;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    @apply inline-block w-6 h-6 border-4 border-electric-cyan border-t-transparent rounded-full animate-spin;
+  }
+}
+
+@layer utilities {
+  /* Text gradient for headings */
+  .text-gradient {
+    @apply bg-gradient-to-r from-electric-cyan to-electric-green bg-clip-text text-transparent;
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-obsidian-800/50 backdrop-blur-md border border-obsidian-600/50;
+  }
+}
