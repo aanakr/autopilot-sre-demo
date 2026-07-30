@@ -22,6 +22,9 @@ const ExecutionTerminal = ({ execution }) => {
           <div key={i}>{line}</div>
         ))}
       </pre>
+      <p className="text-xs text-muted mt-2">
+        Native NRDB telemetry — no third-party API calls, no rate-limit exposure.
+      </p>
     </div>
   );
 };

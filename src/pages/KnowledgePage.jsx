@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Search } from 'lucide-react';
 import RunbookCard from '../components/knowledge/RunbookCard';
 import RoiWidget from '../components/knowledge/RoiWidget';
+import ConnectorsManager from '../components/knowledge/ConnectorsManager';
+import KnowledgeGapWidget from '../components/knowledge/KnowledgeGapWidget';
 import { knowledgeBase } from '../utils/mockData';
 
 const KnowledgePage = () => {
@@ -31,8 +33,15 @@ const KnowledgePage = () => {
         />
       </div>
 
+      <ConnectorsManager connectors={knowledgeBase.connectors} />
+
+      <KnowledgeGapWidget gap={knowledgeBase.knowledgeGap} />
+
       <div>
-        <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-3">Living Runbook Cards</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-muted uppercase tracking-wide">Living Runbook Cards</h2>
+          <span className="text-xs text-muted font-mono">Indexed via Pinecone RAG</span>
+        </div>
         <div className="space-y-4">
           {filteredRunbooks.map((runbook) => (
             <RunbookCard key={runbook.id} runbook={runbook} />

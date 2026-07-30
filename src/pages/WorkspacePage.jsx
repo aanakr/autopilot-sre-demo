@@ -4,6 +4,7 @@ import ExecutionTree from '../components/workspace/ExecutionTree';
 import CausalProofCanvas from '../components/workspace/CausalProofCanvas';
 import RemediationDiffPanel from '../components/workspace/RemediationDiffPanel';
 import ApprovalFooter from '../components/workspace/ApprovalFooter';
+import IncidentSwitcher from '../components/workspace/IncidentSwitcher';
 import { incidents } from '../utils/mockData';
 
 const WorkspacePage = () => {
@@ -29,7 +30,10 @@ const WorkspacePage = () => {
           <ExecutionTree steps={incident.executionTree} />
         </div>
         <div className="bg-obsidian-900/50">
-          <CausalProofCanvas chain={incident.causalChain} />
+          <CausalProofCanvas
+            chain={incident.causalChain}
+            headerRight={<IncidentSwitcher activeIncidentId={incident.id} />}
+          />
         </div>
         <div className="bg-obsidian-800/50">
           <RemediationDiffPanel

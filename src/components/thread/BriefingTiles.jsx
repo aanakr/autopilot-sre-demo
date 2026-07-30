@@ -1,8 +1,8 @@
-import { Zap, Target, BarChart3, CheckCircle2, XCircle } from 'lucide-react';
+import { Zap, Target, BarChart3, CheckCircle2, XCircle, Globe } from 'lucide-react';
 import ProofCard from './ProofCard';
 
 const BriefingTiles = ({ incident }) => {
-  const { triggeringEvent, mitigation, evidence } = incident;
+  const { triggeringEvent, mitigation, evidence, patternCorpus } = incident;
 
   return (
     <div className="space-y-4">
@@ -47,6 +47,17 @@ const BriefingTiles = ({ incident }) => {
             Estimated execution time: ~{mitigation.safety.estimatedMinutes} minutes
           </span>
         </div>
+
+        {patternCorpus && (
+          <div className="mt-3 pt-3 border-t border-obsidian-600 flex items-start gap-2 text-xs">
+            <Globe className="w-3.5 h-3.5 text-electric-cyan flex-shrink-0 mt-0.5" />
+            <p className="text-gray-400">
+              <span className="text-electric-cyan">Pattern Corpus:</span> this failure signature has occurred at{' '}
+              <span className="text-gray-200 font-mono">{patternCorpus.matchedAccounts}</span> other companies.{' '}
+              <span className="text-muted">{patternCorpus.privacyNote}</span>
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="card">

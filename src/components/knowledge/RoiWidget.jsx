@@ -1,10 +1,23 @@
-import { Shield, Brain, DollarSign } from 'lucide-react';
+import { Shield, Brain, DollarSign, Clock } from 'lucide-react';
 
-const formatUsd = (n) => `$${(n / 1_000_000).toFixed(0)}M`;
+const formatUsd = (n) => `$${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
 
 const RoiWidget = ({ roi }) => (
   <div className="card space-y-3">
     <h3 className="font-semibold text-gray-100 mb-1">Substrate Moat & ROI Metrics</h3>
+    <p className="text-sm text-gray-300 flex items-center gap-2">
+      <Clock className="w-4 h-4 text-electric-green flex-shrink-0" />
+      MTTR collapsed from <span className="text-electric-green font-mono">{roi.mttrBefore}</span> to a{' '}
+      <span className="text-electric-green font-mono">{roi.mttrAfter}</span> causal triage | saves{' '}
+      <span className="text-electric-green font-mono">{formatUsd(roi.downtimePreventedUsd)}/yr</span> in outage
+      exposure
+    </p>
+    <p className="text-sm text-gray-300 flex items-center gap-2">
+      <DollarSign className="w-4 h-4 text-electric-green flex-shrink-0" />
+      Reclaims <span className="text-electric-green font-mono">{roi.sreCapacityReclaimedPercent}%</span> of SRE
+      capacity from firefighting (
+      <span className="text-electric-green font-mono">{formatUsd(roi.sreCapacityReclaimedUsd)}/yr</span>)
+    </p>
     <p className="text-sm text-gray-300 flex items-center gap-2">
       <Shield className="w-4 h-4 text-electric-cyan flex-shrink-0" />
       Substrate Intercepted <span className="text-electric-cyan font-mono">{roi.nrqlErrorsIntercepted}</span>{' '}
@@ -14,14 +27,9 @@ const RoiWidget = ({ roi }) => (
       <Brain className="w-4 h-4 text-electric-cyan flex-shrink-0" />
       Causal Graph Prevented <span className="text-electric-cyan font-mono">{roi.hallucinationsPrevented}</span>{' '}
       Hallucinations | RLHF Loop Strengthened{' '}
-      <span className="text-electric-cyan font-mono">{roi.resolutionPathsStrengthened}</span> Resolution Paths
-    </p>
-    <p className="text-sm text-gray-300 flex items-center gap-2">
-      <DollarSign className="w-4 h-4 text-electric-green flex-shrink-0" />
-      <span className="text-electric-green font-mono">{roi.incidentsResolvedAutonomously}</span> Incidents Resolved
-      Autonomously | <span className="text-electric-green font-mono">{formatUsd(roi.downtimePreventedUsd)}</span>{' '}
-      Downtime Prevented | MTTR Reduced by{' '}
-      <span className="text-electric-green font-mono">{roi.mttrReductionPercent}%</span>
+      <span className="text-electric-cyan font-mono">{roi.resolutionPathsStrengthened}</span> Resolution Paths |{' '}
+      <span className="text-electric-cyan font-mono">{roi.incidentsResolvedAutonomously}</span> Incidents Resolved
+      Autonomously
     </p>
   </div>
 );

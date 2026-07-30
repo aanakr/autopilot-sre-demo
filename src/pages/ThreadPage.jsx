@@ -4,6 +4,7 @@ import BackButton from '../components/layout/BackButton';
 import SubstrateContextChip from '../components/layout/SubstrateContextChip';
 import DataDictionaryTooltip from '../components/thread/DataDictionaryTooltip';
 import BriefingTiles from '../components/thread/BriefingTiles';
+import AnalysisVersionSelector from '../components/thread/AnalysisVersionSelector';
 import { incidents } from '../utils/mockData';
 
 const ThreadPage = () => {
@@ -15,11 +16,14 @@ const ThreadPage = () => {
     <div className="max-w-3xl space-y-6">
       <BackButton onClick={() => navigate('/autopilot/home')} label="Back to Home" />
 
-      <div>
-        <p className="text-xs text-muted uppercase tracking-wide mb-1">
-          Incident #{incident.id}
-        </p>
-        <h1 className="text-xl font-bold text-gray-100">{incident.title}</h1>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs text-muted uppercase tracking-wide mb-1">
+            Incident #{incident.id}
+          </p>
+          <h1 className="text-xl font-bold text-gray-100">{incident.title}</h1>
+        </div>
+        <AnalysisVersionSelector versions={incident.analysisVersions} />
       </div>
 
       <SubstrateContextChip syncedWith="#inc-checkout Slack Channel (12s ago)" />

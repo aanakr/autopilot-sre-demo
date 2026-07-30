@@ -13,6 +13,9 @@ const RlhfBanner = ({ rlhf }) => (
       Substrate RLHF Engine issued +{rlhf.reward.toFixed(2)} reward. Causal Graph edge weight updated to{' '}
       {rlhf.updatedCausalEdgeWeight}.
     </p>
+    <p className="text-xs text-muted mt-2">
+      Logged as a Candidate Hypothesis — graduates to the global Pattern Corpus after a full 30-day SLO re-grade.
+    </p>
   </div>
 );
 

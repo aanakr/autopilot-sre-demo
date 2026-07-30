@@ -11,7 +11,10 @@ const MemoryFactsList = ({ facts, onAddFact }) => {
 
   return (
     <div className="card space-y-3">
-      <h3 className="font-semibold text-gray-100 mb-1">Managed Memory Facts (CMS Storage)</h3>
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="font-semibold text-gray-100">Managed Memory Facts (CMS Storage)</h3>
+        <span className="text-xs text-muted font-mono">Backed by Valkey CMS</span>
+      </div>
       {facts.map((fact) => (
         <p key={fact.id} className="text-sm text-gray-300 font-mono">
           [{fact.scope} Scope] &ldquo;{fact.text}&rdquo;

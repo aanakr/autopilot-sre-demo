@@ -7,11 +7,12 @@ const NODE_STYLES = {
   'Mitigation Node': 'border-electric-green/50 bg-electric-green/5',
 };
 
-const CausalProofCanvas = ({ chain }) => (
+const CausalProofCanvas = ({ chain, headerRight }) => (
   <div className="p-6 flex flex-col items-center">
-    <h3 className="text-xs font-semibold text-muted uppercase tracking-wide mb-6 self-start">
-      Causal Proof Canvas
-    </h3>
+    <div className="w-full flex items-center justify-between mb-6">
+      <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">Causal Proof Canvas</h3>
+      {headerRight}
+    </div>
     {chain.map((node) => (
       <div key={node.id} className="w-full max-w-sm flex flex-col items-center">
         <div className={`w-full card border ${NODE_STYLES[node.kind] ?? ''}`}>
@@ -21,6 +22,15 @@ const CausalProofCanvas = ({ chain }) => (
             <p className="text-xs font-mono text-electric-green font-bold mt-2">
               Confidence: {node.confidence}
             </p>
+          )}
+          {node.evidence?.length > 0 && (
+            <ul className="mt-2 space-y-0.5">
+              {node.evidence.map((item) => (
+                <li key={item} className="text-xs font-mono text-muted truncate" title={item}>
+                  ↳ {item}
+                </li>
+              ))}
+            </ul>
           )}
         </div>
         {node.causalityToNext != null && (
