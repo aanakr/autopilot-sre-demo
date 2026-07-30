@@ -34,3 +34,8 @@ export const RemediationStatus = {
   FAILED: 'FAILED',       // Execution failed
   DENIED: 'DENIED',       // Human denied
 };
+
+export const ExecutionStepStatus = {
+  DONE: 'done',
+  PENDING: 'pending',
+};

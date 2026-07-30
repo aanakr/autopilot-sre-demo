@@ -1,10 +1,10 @@
-import { HashRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import HomePage from './pages/HomePage'
-import InvestigationPage from './pages/InvestigationPage'
-import TopologyPage from './pages/TopologyPage'
-import CausalGraphPage from './pages/CausalGraphPage'
-import RunbookPage from './pages/RunbookPage'
-import CorpusMatchPage from './pages/CorpusMatchPage'
+import ThreadPage from './pages/ThreadPage'
+import WorkspacePage from './pages/WorkspacePage'
+import ExecutionPage from './pages/ExecutionPage'
+import KnowledgePage from './pages/KnowledgePage'
+import MemoryPage from './pages/MemoryPage'
 import Header from './components/layout/Header'
 
 function App() {
@@ -14,12 +14,13 @@ function App() {
         <Header />
         <main className="container mx-auto px-4 py-8">
           <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/investigate/:incidentId" element={<InvestigationPage />} />
-            <Route path="/topology/:entityId" element={<TopologyPage />} />
-            <Route path="/causal/:linkId" element={<CausalGraphPage />} />
-            <Route path="/runbook/:runbookId" element={<RunbookPage />} />
-            <Route path="/corpus/:patternId" element={<CorpusMatchPage />} />
+            <Route path="/" element={<Navigate to="/autopilot/home" replace />} />
+            <Route path="/autopilot/home" element={<HomePage />} />
+            <Route path="/autopilot/thread/:incidentId" element={<ThreadPage />} />
+            <Route path="/autopilot/workspace/:incidentId" element={<WorkspacePage />} />
+            <Route path="/autopilot/workspace/:incidentId/execution" element={<ExecutionPage />} />
+            <Route path="/autopilot/knowledge" element={<KnowledgePage />} />
+            <Route path="/autopilot/memory/:entityId" element={<MemoryPage />} />
           </Routes>
         </main>
       </div>

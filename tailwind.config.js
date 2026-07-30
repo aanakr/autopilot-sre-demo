@@ -8,18 +8,19 @@ export default {
     extend: {
       colors: {
         obsidian: {
-          900: '#0A0A0A', // Deep black background
-          800: '#121212', // Card backgrounds
-          700: '#1A1A1A', // Elevated surfaces
-          600: '#2A2A2A', // Borders
-          500: '#3A3A3A', // Subtle borders
+          900: '#0B0E14', // Primary canvas background
+          800: '#131722', // Panels & cards
+          700: '#1F2430', // Borders & strokes
+          600: '#2A3042', // Hover states
+          500: '#3A4155', // Subtle borders
         },
         electric: {
-          green: '#00DC82', // Primary accent (CTAs, success)
-          cyan: '#00B4D8',  // Secondary accent (links, highlights)
+          green: '#10B981',  // Verified telemetry / SLOs / success
+          glow: '#00F0FF',   // High-emphasis verified glow accent
+          cyan: '#06B6D4',   // AI signals / links / highlights
         },
-        danger: '#FF4558',  // Critical alerts
-        warning: '#F59E0B', // Warning states
+        danger: '#EF4444',  // Critical alerts
+        warning: '#F59E0B', // Pending approvals
         success: '#10B981', // Success states
         muted: '#6B7280',   // Secondary text
       },

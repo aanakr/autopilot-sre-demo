@@ -1,245 +1,227 @@
 /**
- * Mock Data for Autopilot SRE Agent Demo
+ * Mock Data for Autopilot SRE Agent Demo (September 2026 MVP)
  *
- * Realistic incident scenarios demonstrating the 4 Substrate Pillars
+ * Single incident scenario (INC-8472) walked through all 6 screens,
+ * plus the organizational knowledge hub and entity memory data.
  */
 
-export const mockIncidentData = {
+export const account = {
+  name: 'Financial-Prod-US',
+  guardrails: 'Enforced',
+  monitoredServices: 42,
+  monitoredClusters: 3,
+};
+
+export const currentUser = {
+  name: 'Alex',
+  role: 'SRE',
+};
+
+export const suggestedActions = [
+  { id: 'schema', icon: 'Search', label: 'Check Recent Schema Normalizations' },
+  { id: 'runbooks', icon: 'FileText', label: 'Surface Living Runbooks for Redis Latency' },
+  { id: 'roi', icon: 'BarChart3', label: 'Render Substrate Moat ROI Dashboard' },
+  { id: 'handoff', icon: 'RefreshCw', label: 'Review Shift Handoff for checkout-service' },
+];
+
+export const incidents = {
   'INC-8472': {
     id: 'INC-8472',
-    title: 'Payment Service Memory Exhaustion',
+    title: 'checkout-api P95 Latency Spike',
+    entity: 'checkout-api',
+    entityMemoryId: 'checkout-service',
     severity: 'CRITICAL',
     status: 'ONGOING',
-    startTime: '2026-09-15T14:23:00Z',
-    affectedService: 'payment-service',
+    detectedMinutesAgo: 2,
+    triggerTimeUtc: '14:07 UTC',
 
-    // Timeline events
-    timeline: [
-      {
-        time: '14:18:00',
-        event: 'Deployment',
-        description: 'payment-service v2.14.0 deployed',
-        type: 'change',
-      },
-      {
-        time: '14:23:00',
-        event: 'Alert Triggered',
-        description: 'Memory usage > 95%',
-        type: 'alert',
-      },
-      {
-        time: '14:24:30',
-        event: 'Service Degradation',
-        description: 'Response time increased 400%',
-        type: 'symptom',
-      },
-      {
-        time: '14:26:00',
-        event: 'RCA Complete',
-        description: 'Autopilot identified root cause',
-        type: 'analysis',
-      },
-    ],
+    metrics: {
+      p95Before: 365,
+      p95After: 1240,
+      multiplier: 3.4,
+    },
 
-    // Summary (bullet points)
-    summary: [
-      'Database connection pool exhausted due to slow SQL query loop in v2.14.0',
-      'Checkout service experiencing cascading failures (404 errors)',
-      'Estimated 180 failed transactions/min (~$42k revenue at risk)',
-      'Similar incident (RETRO-INC-4512) resolved by increasing connection limits',
-    ],
+    deploy: {
+      id: '4a7f2b1',
+      author: 'Jordan Kim',
+      minutesBeforeIncident: 1,
+    },
 
-    // Recommendations with confidence scores
-    recommendations: [
-      {
-        id: 'rec-1',
-        title: 'Roll back to payment-service v2.13.8',
-        confidence: 0.88,
-        priority: 'IMMEDIATE',
-        impact: 'High',
-        description: 'Previous version had stable connection pool usage',
-        costOfInaction: '~$42k/min revenue loss',
-        estimatedDuration: '2 minutes',
-      },
-      {
-        id: 'rec-2',
-        title: 'Increase PostgreSQL max_connections from 100 to 200',
-        confidence: 0.72,
-        priority: 'SECONDARY',
-        impact: 'Medium',
-        description: 'Temporary mitigation while investigating v2.14.0 code',
-        costOfInaction: 'Continued degradation',
-        estimatedDuration: '5 minutes',
-      },
-    ],
+    dataDictionary: {
+      customTag: 'txn_id',
+      canonicalTag: 'trace.id',
+      matchPercent: 100,
+    },
 
-    // Proof Chain (4 tiles: Symptom → Change → Root Cause → Fix)
-    proofChain: {
-      symptom: {
-        title: 'Symptom',
-        description: 'Payment-service memory usage spiked to 98% at 14:23:00 UTC',
-        evidence: [
-          'Memory usage: 1.96 GB / 2.0 GB',
-          'Response time P95: 4,200ms (baseline: 120ms)',
-          'Error rate: 23% (baseline: 0.01%)',
-        ],
-        traceIds: ['trace-abc-123', 'trace-def-456'],
-        nrql: 'SELECT average(memoryUsagePercent) FROM SystemSample WHERE entityName = \'payment-service\' SINCE 30 minutes ago TIMESERIES',
-      },
-      change: {
-        title: 'Change Detected',
-        description: 'Deployment of payment-service v2.14.0 occurred 5 minutes before incident',
-        evidence: [
-          'Deployment timestamp: 14:18:00 UTC',
-          'Version: v2.13.8 → v2.14.0',
-          'Deployment method: Rolling update (k8s)',
-        ],
-        changeId: 'DEPLOY-2026-09-15-001',
-        nrql: 'SELECT * FROM Deployment WHERE appName = \'payment-service\' SINCE 1 hour ago',
-      },
-      rootCause: {
-        title: 'Root Cause',
-        description: 'Slow SQL query loop in new transaction validation logic',
-        evidence: [
-          'Query execution time: 3,400ms (baseline: 8ms)',
-          'Connection pool saturation: 100/100 connections active',
-          'Database CPU spike: 92% (baseline: 15%)',
-        ],
-        codeLocation: 'src/services/validateTransaction.js:47',
-        traceIds: ['trace-abc-123', 'trace-def-456', 'trace-ghi-789'],
-        nrql: 'SELECT average(databaseDuration) FROM Transaction WHERE appName = \'payment-service\' FACET name SINCE 30 minutes ago',
-      },
-      fix: {
-        title: 'Recommended Fix',
-        description: 'Immediate rollback to v2.13.8 + code review of v2.14.0 query logic',
-        steps: [
-          'Execute: kubectl set image deployment/payment-service payment-service=registry/payment-service:v2.13.8',
-          'Monitor: Wait 2 minutes for rollout completion',
-          'Validate: Check memory usage returns to baseline (~40%)',
-          'Post-incident: Review src/services/validateTransaction.js query optimization',
-        ],
-        confidence: 0.88,
+    triggeringEvent: {
+      title: 'Triggering Event',
+      description: `P95 latency spiked 3.4x (365ms → 1,240ms) at 14:07 UTC following Deploy 4a7f2b1.`,
+    },
+
+    mitigation: {
+      title: 'Immediate Mitigation Runbook',
+      action: `Build index 'idx_sessions_user_sess' CONCURRENTLY on primary DB.`,
+      citationRunbookId: 'RETRO-INC-4512',
+      citationMatchPercent: 92,
+      citationAge: 'Resolved 6 months ago',
+      safety: {
+        reversible: true,
+        tableLock: false,
+        estimatedMinutes: 4,
       },
     },
 
-    // Entity Topology (Blast Radius)
-    topology: {
-      nodes: [
-        { id: 'payment-service', name: 'Payment Service', type: 'APPLICATION', health: 'CRITICAL' },
-        { id: 'postgres-primary', name: 'PostgreSQL Primary', type: 'DATABASE', health: 'DEGRADED' },
-        { id: 'checkout-service', name: 'Checkout Service', type: 'APPLICATION', health: 'DEGRADED' },
-        { id: 'api-gateway', name: 'API Gateway', type: 'SERVICE', health: 'HEALTHY' },
-        { id: 'k8s-node-03', name: 'k8s-node-03', type: 'HOST', health: 'HEALTHY' },
-      ],
-      edges: [
-        { source: 'api-gateway', target: 'payment-service', label: 'HTTPS' },
-        { source: 'payment-service', target: 'postgres-primary', label: 'SQL' },
-        { source: 'checkout-service', target: 'payment-service', label: 'gRPC' },
-        { source: 'payment-service', target: 'k8s-node-03', label: 'runs-on' },
+    evidence: [
+      {
+        label: 'Trace Exemplar',
+        traceId: '7f8a9b2c4e',
+        durationMs: 1240,
+        exception: 'N+1 Query in ORM',
+      },
+      {
+        label: 'DB Metrics',
+        detail: '14 sequential fetches per checkout request on sessions-db',
+      },
+    ],
+
+    // Linear causal chain rendered as a vertical proof canvas (Screen 3, Pane B)
+    causalChain: [
+      {
+        id: 'symptom',
+        kind: 'Symptom Node',
+        label: 'P95 Spiked 3.4x (365ms → 1,240ms)',
+      },
+      {
+        id: 'change',
+        kind: 'Change Node',
+        label: 'Deploy 4a7f2b1 (Jordan Kim)',
+        causalityToNext: 0.94,
+      },
+      {
+        id: 'root-cause',
+        kind: 'Root Cause Node',
+        label: 'N+1 Query on sessions-db',
+        causalityToNext: 0.89,
+      },
+      {
+        id: 'mitigation',
+        kind: 'Mitigation Node',
+        label: 'Build composite DB index',
+        confidence: 0.92,
+      },
+    ],
+
+    executionTree: [
+      { id: 'fetch-traces', label: 'Read APM Traces', status: 'done' },
+      { id: 'query-dictionary', label: 'Query Data Dictionary', status: 'done' },
+      { id: 'map-otel', label: 'Map OTel Schema', status: 'done' },
+      { id: 'search-rag', label: 'Search Local RAG', status: 'done', detail: 'RETRO-INC-4512' },
+      { id: 'await-approval', label: 'Await HIL Approval', status: 'pending' },
+    ],
+
+    remediationDiff: {
+      language: 'sql',
+      lines: [
+        { type: 'add', text: 'CREATE INDEX CONCURRENTLY' },
+        { type: 'add', text: '  idx_sessions_user_sess' },
+        { type: 'add', text: '  ON sessions(user_id);' },
       ],
     },
 
-    // Causal Graph (RLHF scores)
-    causalGraph: {
-      nodes: [
-        { id: 'deployment', label: 'Deployment v2.14.0', score: 0.95 },
-        { id: 'slow-query', label: 'Slow SQL Query', score: 0.92 },
-        { id: 'pool-exhaustion', label: 'Connection Pool Full', score: 0.88 },
-        { id: 'memory-spike', label: 'Memory Exhaustion', score: 0.88 },
-        { id: 'cascade-failure', label: 'Checkout Failures', score: 0.75 },
-      ],
-      edges: [
-        { source: 'deployment', target: 'slow-query', confidence: 0.95 },
-        { source: 'slow-query', target: 'pool-exhaustion', confidence: 0.92 },
-        { source: 'pool-exhaustion', target: 'memory-spike', confidence: 0.88 },
-        { source: 'memory-spike', target: 'cascade-failure', confidence: 0.75 },
-      ],
-    },
-
-    // Incident Knowledge Base (RAG match)
-    similarIncidents: [
-      {
-        id: 'RETRO-INC-4512',
-        title: 'Postgres connection pool exhaustion during peak traffic',
-        date: '2026-07-14',
-        matchScore: 0.92,
-        matchType: 'Same root cause',
-        summary: 'Connection pool limits too low for traffic volume',
-        resolution: 'Increased max_connections from 100 → 200',
-        timeToResolve: '12 minutes',
-      },
-      {
-        id: 'RETRO-INC-3891',
-        title: 'Payment service memory leak in v2.12.0',
-        date: '2026-06-03',
-        matchScore: 0.78,
-        matchType: 'Similar pattern',
-        summary: 'Memory leak in transaction validation code',
-        resolution: 'Rolled back to v2.11.5, patched memory leak',
-        timeToResolve: '18 minutes',
-      },
+    remediationOptions: [
+      { id: 'restart-pod', label: 'Restart Pod', score: 0.30 },
+      { id: 'build-index', label: 'Build Index', score: 0.88, recommended: true },
     ],
 
-    // Global Corpus Match
-    globalCorpus: {
-      matchScore: 0.94,
-      totalIncidents: 1247,
-      enterprisesAffected: 89,
-      pattern: 'DB_Stateful_Storage → Connection_Pool → Memory_Saturation',
-      topRemediation: 'Scale connection pool',
-      remediationSuccessRate: 0.94,
-      privacyNote: 'Pattern abstracted from anonymized multi-tenant data (no PII)',
+    execution: {
+      commandLabel: 'Action Handoffs (Temporal State Machine)',
+      command: `CREATE INDEX CONCURRENTLY idx_sessions_user_sess ON sessions(user_id);`,
+      logLines: [
+        'Acquiring advisory lock on sessions table metadata...',
+        'Index build started (CONCURRENTLY, zero-downtime mode)...',
+        'Scanning sessions table: 0% → 100%...',
+        'Validating index integrity...',
+        'Index build 100% complete. Zero dropped writes.',
+        'Lock status: PASS',
+      ],
     },
 
-    // Hypotheses evaluated (for transparency)
-    hypothesesEvaluated: [
-      {
-        hypothesis: 'Database server hardware failure',
-        score: 0.12,
-        evidence: { deployment: 0.0, trace: 0.1, metric: 0.2, temporal: 0.15 },
-        reason: 'No infrastructure alerts or CPU/disk anomalies detected',
-      },
-      {
-        hypothesis: 'DDoS attack or traffic spike',
-        score: 0.28,
-        evidence: { deployment: 0.0, trace: 0.3, metric: 0.4, temporal: 0.45 },
-        reason: 'Traffic volume within normal range (no significant increase)',
-      },
-      {
-        hypothesis: 'Recent deployment introduced performance regression',
-        score: 0.88,
-        evidence: { deployment: 0.95, trace: 0.92, metric: 0.85, temporal: 0.8 },
-        reason: 'Timing correlation (5 min lag), query duration 400x baseline',
-      },
-    ],
-
-    // Impact & Blast Radius
-    impact: {
-      failedTransactions: 2160,
-      affectedUsers: 847,
-      duration: '12 minutes (ongoing)',
-      estimatedRevenueLoss: '$504k',
-      servicesDegraded: ['payment-service', 'checkout-service'],
-      servicesCritical: ['payment-service'],
-      servicesHealthy: ['api-gateway', 'user-service', 'notification-service'],
+    validation: {
+      totalSeconds: 900, // 15:00
+      seedElapsedSeconds: 252, // 04:12, matches the PRD's mid-countdown mock
+      rollbackThresholdMs: 300,
+      baselineP95Ms: 142,
+      baselineErrorRate: 0.0,
     },
-  },
 
-  // Default fallback data
-  default: {
-    id: 'INC-0000',
-    title: 'Sample Incident',
-    severity: 'MEDIUM',
-    status: 'RESOLVED',
-    summary: ['This is a sample incident for demonstration purposes'],
-    recommendations: [],
-    proofChain: {},
-    topology: { nodes: [], edges: [] },
-    causalGraph: { nodes: [], edges: [] },
-    similarIncidents: [],
-    globalCorpus: {},
+    rlhf: {
+      reward: 0.03,
+      updatedCausalEdgeWeight: 0.91,
+    },
   },
 };
 
-// Export specific incident for quick access
-export const primaryIncident = mockIncidentData['INC-8472'];
+export const primaryIncident = incidents['INC-8472'];
+
+export const knowledgeBase = {
+  runbooks: [
+    {
+      id: 'RETRO-INC-4512',
+      title: 'N+1 Query Memory Leak on sessions-db',
+      lastInvoked: '2 mins ago',
+      lastInvokedFor: 'INC-8472',
+      matchPercent: 92,
+      summary: 'High P95 latency caused by un-indexed user_id lookups in cart enrichment service.',
+      verifiedFix: 'Build composite index CONCURRENTLY.',
+      successRate: 1.0,
+      executionCount: 14,
+    },
+    {
+      id: 'RETRO-INC-3891',
+      title: 'Redis Cache Connection Pool Exhaustion',
+      lastInvoked: '3 days ago',
+      lastInvokedFor: 'checkout-service',
+      matchPercent: 88,
+      summary: 'Connection pool limits too low for traffic volume during peak checkout hours.',
+      verifiedFix: 'Increase max_connections to 500 and apply exponential backoff.',
+      successRate: 0.93,
+      executionCount: 6,
+    },
+  ],
+  roi: {
+    nrqlErrorsIntercepted: 450,
+    hallucinationsPrevented: 12,
+    resolutionPathsStrengthened: 8,
+    incidentsResolvedAutonomously: 15,
+    downtimePreventedUsd: 15_000_000,
+    mttrReductionPercent: 64,
+  },
+};
+
+export const entityMemory = {
+  'checkout-service': {
+    entityId: 'checkout-service',
+    lastUpdatedUtc: '14:10 UTC',
+    lastUpdatedBy: 'SRE Alex',
+    scope: 'Account (Financial-Prod-US)',
+    activeThread: {
+      incidentId: 'INC-8472',
+      title: 'P95 Latency Spike',
+      hoursElapsed: 2,
+      stepsExecuted: 14,
+    },
+    eliminatedHypotheses: [
+      { title: 'Redis Cache', detail: 'Verified healthy at 14:02 UTC. Do not re-query cache layer.' },
+      { title: 'K8s Host Node', detail: 'No CPU throttling observed on host k8s-node-12.' },
+    ],
+    standingNotes: [
+      'Nightly GC pause occurs 00:00-00:30 UTC. Expected behavior; do NOT page on-call.',
+    ],
+    activeResolution: `Index build 'idx_sessions_user_sess' executed and holding SLO baseline.`,
+  },
+};
+
+export const defaultMemoryFacts = [
+  { id: 'fact-1', scope: 'User', text: `AP-stage refers to agentic-platform in staging, not infra entity.` },
+  { id: 'fact-2', scope: 'Account', text: 'Route all critical payment timeouts to #oncall-payments.' },
+];

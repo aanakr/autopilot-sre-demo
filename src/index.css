@@ -30,6 +30,11 @@
   }
 }
 
+@keyframes countdown-tick {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 @layer components {
   /* Reusable card component */
   .card {
