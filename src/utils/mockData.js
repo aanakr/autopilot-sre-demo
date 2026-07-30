@@ -377,6 +377,24 @@ export const knowledgeBase = {
       verifiedFix: 'Build composite index CONCURRENTLY.',
       successRate: 1.0,
       executionCount: 14,
+      postmortem: {
+        summary:
+          'A schema change six months prior removed an implicit index on sessions.user_id, silently ' +
+          'turning every session lookup into a full table scan. Traffic growth eventually pushed query ' +
+          'time past the connection-pool timeout, cascading into checkout failures.',
+        timeline: [
+          { time: 'T-0m', event: 'P95 latency alert fires on checkout-api.' },
+          { time: 'T+3m', event: 'Autopilot correlates the spike to Deploy 4a7f2b1 and drafts a mitigation.' },
+          { time: 'T+7m', event: 'On-call approves CREATE INDEX CONCURRENTLY via the Coach UI.' },
+          { time: 'T+11m', event: 'P95 returns to baseline (142ms); 15-min SLO validation window begins.' },
+          { time: 'T+41m', event: 'Postmortem auto-drafted from ChatOps + execution timeline, filed to Confluence.' },
+        ],
+      },
+      executionHistory: [
+        { date: '2026-07-29', incidentId: 'INC-8472', outcome: 'Success', durationMs: 1240 },
+        { date: '2026-05-02', incidentId: 'INC-6210', outcome: 'Success', durationMs: 980 },
+        { date: '2026-02-14', incidentId: 'INC-5188', outcome: 'Success', durationMs: 1510 },
+      ],
     },
     {
       id: 'RETRO-INC-3891',
@@ -388,6 +406,23 @@ export const knowledgeBase = {
       verifiedFix: 'Increase max_connections to 500 and apply exponential backoff.',
       successRate: 0.93,
       executionCount: 6,
+      postmortem: {
+        summary:
+          'A promotional traffic spike drove concurrent checkout sessions past the configured Redis ' +
+          'connection ceiling (100). Requests queued instead of failing fast, compounding latency until ' +
+          'the pool was raised and exponential backoff was added to smooth reconnect storms.',
+        timeline: [
+          { time: 'T-0m', event: 'P95 latency alert fires on checkout-service.' },
+          { time: 'T+2m', event: 'Autopilot identifies Redis pool saturation via cache metrics.' },
+          { time: 'T+5m', event: 'On-call approves raising max_connections to 500 with backoff.' },
+          { time: 'T+9m', event: 'P95 returns to baseline; SLO validation window begins.' },
+        ],
+      },
+      executionHistory: [
+        { date: '2026-07-27', incidentId: 'INC-8210', outcome: 'Success', durationMs: 890 },
+        { date: '2026-04-11', incidentId: 'INC-5904', outcome: 'Success', durationMs: 1120 },
+        { date: '2026-01-30', incidentId: 'INC-4772', outcome: 'Partial — required manual pod restart', durationMs: 2340 },
+      ],
     },
   ],
   roi: {

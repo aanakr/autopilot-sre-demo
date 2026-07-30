@@ -14,6 +14,7 @@ export const useAutopilot = () => {
 
 export const AutopilotProvider = ({ children }) => {
   const [memoryFacts, setMemoryFacts] = useState(defaultMemoryFacts);
+  const [activeIncidentId, setActiveIncidentId] = useState('INC-8472');
 
   const addMemoryFact = (scope, text) => {
     if (!text.trim()) return;
@@ -28,6 +29,8 @@ export const AutopilotProvider = ({ children }) => {
     currentUser,
     memoryFacts,
     addMemoryFact,
+    activeIncidentId,
+    setActiveIncidentId,
   };
 
   return (

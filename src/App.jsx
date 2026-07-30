@@ -6,12 +6,14 @@ import ExecutionPage from './pages/ExecutionPage'
 import KnowledgePage from './pages/KnowledgePage'
 import MemoryPage from './pages/MemoryPage'
 import Header from './components/layout/Header'
+import BreadcrumbRibbon from './components/layout/BreadcrumbRibbon'
 
 function App() {
   return (
     <HashRouter>
       <div className="min-h-screen bg-obsidian-900">
         <Header />
+        <BreadcrumbRibbon />
         <main className="container mx-auto px-4 py-8">
           <Routes>
             <Route path="/" element={<Navigate to="/autopilot/home" replace />} />

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Zap, PlayCircle, MessageCircle } from 'lucide-react';
 import BackButton from '../components/layout/BackButton';
@@ -6,11 +7,17 @@ import DataDictionaryTooltip from '../components/thread/DataDictionaryTooltip';
 import BriefingTiles from '../components/thread/BriefingTiles';
 import AnalysisVersionSelector from '../components/thread/AnalysisVersionSelector';
 import { incidents } from '../utils/mockData';
+import { useAutopilot } from '../context/AutopilotContext';
 
 const ThreadPage = () => {
   const { incidentId } = useParams();
   const navigate = useNavigate();
   const incident = incidents[incidentId] ?? incidents['INC-8472'];
+  const { setActiveIncidentId } = useAutopilot();
+
+  useEffect(() => {
+    setActiveIncidentId(incident.id);
+  }, [incident.id, setActiveIncidentId]);
 
   return (
     <div className="max-w-3xl space-y-6">

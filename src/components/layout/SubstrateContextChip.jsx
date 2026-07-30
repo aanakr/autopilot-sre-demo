@@ -13,6 +13,8 @@ const SubstrateContextChip = ({ syncedWith }) => {
       {syncedWith ? (
         <span className="text-gray-300">
           Substrate Context: Synchronized with <span className="text-electric-cyan">{syncedWith}</span>
+          <span className="text-muted"> | </span>
+          Guardrails: <span className="text-electric-green">{account.guardrails}</span>
         </span>
       ) : (
         <span className="text-gray-300">

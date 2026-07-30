@@ -14,7 +14,7 @@ const ConnectorsManager = ({ connectors }) => (
           className="flex items-center gap-2 text-sm bg-obsidian-900 border border-obsidian-600 rounded px-3 py-2"
         >
           {connector.status === 'connected' ? (
-            <CheckCircle2 className="w-3.5 h-3.5 text-electric-green flex-shrink-0" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-knowledge-emerald flex-shrink-0" />
           ) : (
             <AlertTriangle className="w-3.5 h-3.5 text-warning flex-shrink-0" />
           )}

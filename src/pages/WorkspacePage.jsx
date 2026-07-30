@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ExecutionTree from '../components/workspace/ExecutionTree';
 import CausalProofCanvas from '../components/workspace/CausalProofCanvas';
@@ -6,12 +6,18 @@ import RemediationDiffPanel from '../components/workspace/RemediationDiffPanel';
 import ApprovalFooter from '../components/workspace/ApprovalFooter';
 import IncidentSwitcher from '../components/workspace/IncidentSwitcher';
 import { incidents } from '../utils/mockData';
+import { useAutopilot } from '../context/AutopilotContext';
 
 const WorkspacePage = () => {
   const { incidentId } = useParams();
   const navigate = useNavigate();
   const incident = incidents[incidentId] ?? incidents['INC-8472'];
   const [autoMonitor, setAutoMonitor] = useState(true);
+  const { setActiveIncidentId } = useAutopilot();
+
+  useEffect(() => {
+    setActiveIncidentId(incident.id);
+  }, [incident.id, setActiveIncidentId]);
 
   const recommendedOption =
     incident.remediationOptions.find((o) => o.recommended) ?? incident.remediationOptions[0];

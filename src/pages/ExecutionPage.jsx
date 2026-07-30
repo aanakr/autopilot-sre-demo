@@ -1,16 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CornerDownLeft, BookOpen } from 'lucide-react';
 import ExecutionTerminal from '../components/execution/ExecutionTerminal';
 import ValidationCountdown from '../components/execution/ValidationCountdown';
 import RlhfBanner from '../components/execution/RlhfBanner';
 import { incidents } from '../utils/mockData';
+import { useAutopilot } from '../context/AutopilotContext';
 
 const ExecutionPage = () => {
   const { incidentId } = useParams();
   const navigate = useNavigate();
   const incident = incidents[incidentId] ?? incidents['INC-8472'];
   const [validationComplete, setValidationComplete] = useState(false);
+  const { setActiveIncidentId } = useAutopilot();
+
+  useEffect(() => {
+    setActiveIncidentId(incident.id);
+  }, [incident.id, setActiveIncidentId]);
 
   return (
     <div className="max-w-3xl space-y-6">

@@ -37,7 +37,7 @@ const MemoryFactsList = ({ facts, onAddFact }) => {
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
           placeholder="Add a memory fact..."
-          className="flex-1 min-w-[12rem] bg-obsidian-900 border border-obsidian-600 rounded text-sm text-gray-300 placeholder:text-muted px-2 py-1.5 focus:outline-none focus:border-electric-cyan"
+          className="flex-1 min-w-[12rem] bg-obsidian-900 border border-obsidian-600 rounded text-sm text-gray-300 placeholder:text-muted px-2 py-1.5 focus:outline-none focus:border-knowledge-purple"
         />
         <button onClick={handleAdd} className="btn-secondary text-sm">
           ✏️ Add Memory Fact

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Plug } from 'lucide-react';
 
 const KnowledgeGapWidget = ({ gap }) => {
   const navigate = useNavigate();
@@ -16,12 +16,17 @@ const KnowledgeGapWidget = ({ gap }) => {
           <p className="text-xs text-muted mb-3">
             Impact Score: <span className="text-warning font-mono font-bold">{gap.impactScore}/10</span>
           </p>
-          <button
-            onClick={() => navigate(`/autopilot/memory/checkout-service`)}
-            className="btn-secondary text-sm"
-          >
-            Supply Missing Data
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button className="btn-secondary text-sm flex items-center gap-2" disabled title="Not available in this MVP">
+              <Plug className="w-3.5 h-3.5" /> Connect ServiceNow MCP Tool
+            </button>
+            <button
+              onClick={() => navigate(`/autopilot/memory/checkout-service`)}
+              className="bg-knowledge-purple text-obsidian-900 px-4 py-2 rounded-md font-semibold hover:bg-knowledge-emerald transition-colors text-sm"
+            >
+              ✏️ Supply Data In-Place
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -2,18 +2,31 @@ import { Link, useLocation } from 'react-router-dom';
 import { Activity, AlertTriangle, BookOpen, Settings, Search } from 'lucide-react';
 import { useAutopilot } from '../../context/AutopilotContext';
 
-const TABS = [
-  { id: 'incidents', label: 'Active Incidents', icon: AlertTriangle, to: '/autopilot/home', badge: 1 },
-  { id: 'knowledge', label: 'Organizational Knowledge', icon: BookOpen, to: '/autopilot/knowledge' },
-  { id: 'configure', label: 'Configure Agent', icon: Settings, to: null },
-];
+const TRIAGE_PREFIXES = ['/autopilot/home', '/autopilot/thread', '/autopilot/workspace'];
 
 const Header = () => {
   const location = useLocation();
-  const { account, currentUser } = useAutopilot();
+  const { account, currentUser, activeIncidentId } = useAutopilot();
   const hash = location.hash.replace('#', '') || location.pathname;
 
-  const isActive = (to) => to && (hash === to || hash.startsWith(to));
+  const tabs = [
+    {
+      id: 'incidents',
+      label: 'Active Incidents',
+      icon: AlertTriangle,
+      to: `/autopilot/thread/${activeIncidentId}`,
+      badge: 1,
+      isActive: TRIAGE_PREFIXES.some((p) => hash.startsWith(p)),
+    },
+    {
+      id: 'knowledge',
+      label: 'Organizational Knowledge',
+      icon: BookOpen,
+      to: '/autopilot/knowledge',
+      isActive: hash.startsWith('/autopilot/knowledge') || hash.startsWith('/autopilot/memory'),
+    },
+    { id: 'configure', label: 'Configure Agent', icon: Settings, to: null, isActive: false },
+  ];
 
   return (
     <header className="bg-obsidian-800 border-b border-obsidian-700 sticky top-0 z-50">
@@ -47,10 +60,9 @@ const Header = () => {
         </div>
 
         <nav className="flex items-center gap-1 h-11 -mb-px">
-          {TABS.map(({ id, label, icon: Icon, to, badge }) => {
-            const active = isActive(to);
+          {tabs.map(({ id, label, icon: Icon, to, badge, isActive }) => {
             const className = `flex items-center gap-2 px-4 h-full text-sm font-medium border-b-2 transition-colors ${
-              active
+              isActive
                 ? 'border-electric-green text-electric-green'
                 : 'border-transparent text-muted hover:text-gray-200'
             } ${!to ? 'cursor-default opacity-60' : ''}`;

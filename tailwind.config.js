@@ -23,6 +23,10 @@ export default {
         warning: '#F59E0B', // Pending approvals
         success: '#10B981', // Success states
         muted: '#6B7280',   // Secondary text
+        knowledge: {
+          emerald: '#34D399', // Knowledge Hub primary accent (distinct from Triage's electric-green)
+          purple: '#A78BFA',  // Knowledge Hub secondary accent (distinct from Triage's electric-cyan)
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
