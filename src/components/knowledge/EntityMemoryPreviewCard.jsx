@@ -18,7 +18,7 @@ const EntityMemoryPreviewCard = ({ memory }) => {
       <ul className="space-y-1.5 mb-4">
         {topHypotheses.map((h, i) => (
           <li key={h.title} className="text-sm text-gray-300">
-            • Rule-Out {i + 1} ({h.title}): {h.detail}
+            • Rule-Out {i + 1} ({h.title}) — Tested at {h.testedAt}. Result: {h.result} Hypothesis Eliminated.
           </li>
         ))}
       </ul>
@@ -27,7 +27,7 @@ const EntityMemoryPreviewCard = ({ memory }) => {
           onClick={() => navigate(`/autopilot/memory/${memory.entityId}`)}
           className="bg-knowledge-purple text-obsidian-900 px-4 py-2 rounded-md font-semibold hover:bg-knowledge-emerald transition-colors text-sm"
         >
-          View Entity Memory Card
+          Inspect Entity Operational Memory
         </button>
         <button
           onClick={() => setExported(true)}

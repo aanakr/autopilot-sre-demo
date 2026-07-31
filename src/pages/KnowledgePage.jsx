@@ -5,6 +5,7 @@ import RoiWidget from '../components/knowledge/RoiWidget';
 import ConnectorsManager from '../components/knowledge/ConnectorsManager';
 import KnowledgeGapWidget from '../components/knowledge/KnowledgeGapWidget';
 import EntityMemoryPreviewCard from '../components/knowledge/EntityMemoryPreviewCard';
+import InteractiveQuerySupply from '../components/knowledge/InteractiveQuerySupply';
 import { knowledgeBase, entityMemory } from '../utils/mockData';
 
 const KnowledgePage = () => {
@@ -18,7 +19,7 @@ const KnowledgePage = () => {
     <div className="max-w-3xl space-y-8 border-t-2 border-knowledge-purple/40 pt-6 -mt-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-100">Organizational Knowledge & Living Runbook Repository</h1>
+          <h1 className="text-xl font-bold text-gray-100">Organizational Knowledge Hub & Gap Management</h1>
           <p className="text-sm text-muted mt-1">
             Search across 1,240 indexed postmortems, Confluence runbooks, and ChatOps triage threads.
           </p>
@@ -42,6 +43,8 @@ const KnowledgePage = () => {
       <ConnectorsManager connectors={knowledgeBase.connectors} />
 
       <KnowledgeGapWidget gap={knowledgeBase.knowledgeGap} />
+
+      <InteractiveQuerySupply />
 
       <div>
         <div className="flex items-center justify-between mb-3">

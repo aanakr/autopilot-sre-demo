@@ -8,13 +8,13 @@ const ShiftHandoffCard = ({ memory }) => (
     </div>
     <ul className="space-y-2 text-sm text-gray-300">
       <li>
-        • Active Outage Thread: <span className="text-knowledge-purple">{memory.activeThread.incidentId}</span> (
-        {memory.activeThread.title}) - {memory.activeThread.hoursElapsed} hours elapsed,{' '}
-        {memory.activeThread.stepsExecuted} steps executed.
+        • Active Incident: <span className="text-knowledge-purple">{memory.activeThread.incidentId}</span> (
+        {memory.activeThread.status}) — {memory.activeThread.title},{' '}
+        {memory.activeThread.hoursElapsed} hours elapsed, {memory.activeThread.stepsExecuted} steps executed.
       </li>
       {memory.eliminatedHypotheses.map((h, i) => (
         <li key={h.title}>
-          • Rule-Out {i + 1} ({h.title}): {h.detail}
+          • Rule-Out {i + 1} ({h.title}) — Tested at {h.testedAt}. Result: {h.result} Hypothesis Eliminated.
         </li>
       ))}
       {memory.standingNotes.map((note) => (

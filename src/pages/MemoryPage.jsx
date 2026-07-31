@@ -23,6 +23,10 @@ const MemoryPage = () => {
           Entity Operational Memory: {memory.entityId}
         </h1>
         <p className="text-sm text-muted mt-1">
+          Tier: <span className="text-gray-300">{memory.tier}</span> | Owner:{' '}
+          <span className="text-gray-300">{memory.owner}</span>
+        </p>
+        <p className="text-sm text-muted mt-1">
           Last Updated: {memory.lastUpdatedUtc} by {memory.lastUpdatedBy} | Scope: {memory.scope}
         </p>
       </div>

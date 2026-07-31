@@ -1,13 +1,13 @@
 import { X } from 'lucide-react';
 
-const SlideOverDrawer = ({ open, title, onClose, children }) => (
+const SlideOverDrawer = ({ open, title, onClose, children, accentClass = 'border-knowledge-purple/40' }) => (
   <div className={`fixed inset-0 z-[60] ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open}>
     <div
       onClick={onClose}
       className={`absolute inset-0 bg-black/60 transition-opacity ${open ? 'opacity-100' : 'opacity-0'}`}
     />
     <div
-      className={`absolute top-0 right-0 h-full w-full max-w-md bg-obsidian-800 border-l border-knowledge-purple/40 shadow-2xl transition-transform duration-300 ${
+      className={`absolute top-0 right-0 h-full w-full max-w-md bg-obsidian-800 border-l ${accentClass} shadow-2xl transition-transform duration-300 ${
         open ? 'translate-x-0' : 'translate-x-full'
       }`}
     >

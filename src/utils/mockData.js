@@ -34,6 +34,7 @@ export const incidents = {
     status: 'ONGOING',
     detectedMinutesAgo: 2,
     triggerTimeUtc: '14:07 UTC',
+    blastRadius: '4 microservices, 1 DB, 12.4k sessions',
 
     metrics: {
       p95Before: 365,
@@ -106,15 +107,12 @@ export const incidents = {
       },
     ],
 
-    // Linear causal chain rendered as a vertical proof canvas (Screen 3, Pane B)
-    // `evidence` on each node = "data used per vertex" (traces, NRQL, log exemplars)
+    // Linear causal chain rendered as a vertical proof canvas (Screen 3, Pane B).
+    // Purely diagnostic — starts at the change, ends at the observed symptom.
+    // The prescribed fix lives separately, in Pane C's Remediation Diff Panel.
+    // `evidence` on each node = "data used per vertex" (traces, NRQL, log exemplars),
+    // revealed via a click-to-open telemetry exemplar drawer.
     causalChain: [
-      {
-        id: 'symptom',
-        kind: 'Symptom Node',
-        label: 'P95 Spiked 3.4x (365ms → 1,240ms)',
-        evidence: ['Trace: 7f8a9b2c4e (1,240ms)', 'Metric: checkout-api p95_duration'],
-      },
       {
         id: 'change',
         kind: 'Change Node',
@@ -133,11 +131,17 @@ export const incidents = {
         ],
       },
       {
-        id: 'mitigation',
-        kind: 'Mitigation Node',
-        label: 'Build composite DB index',
-        confidence: 0.92,
-        evidence: ['Living Runbook: RETRO-INC-4512 (92% match)'],
+        id: 'cascade',
+        kind: 'Cascade Node',
+        label: 'DB Pool Exhaustion',
+        causalityToNext: 0.95,
+        evidence: ['Metric: sessions-db connections_active = 100/100', 'Log exemplar: connection acquire timeout'],
+      },
+      {
+        id: 'symptom',
+        kind: 'Symptom Node',
+        label: 'P95 Latency Spike (365ms → 1,240ms)',
+        evidence: ['Trace: 7f8a9b2c4e (1,240ms)', 'Metric: checkout-api p95_duration'],
       },
     ],
 
@@ -199,6 +203,7 @@ export const incidents = {
     status: 'ONGOING',
     detectedMinutesAgo: 6,
     triggerTimeUtc: '09:52 UTC',
+    blastRadius: '3 microservices, 1 cache cluster, 8.9k sessions',
 
     metrics: {
       p95Before: 210,
@@ -271,12 +276,6 @@ export const incidents = {
 
     causalChain: [
       {
-        id: 'symptom',
-        kind: 'Symptom Node',
-        label: 'P95 Spiked 4.2x (210ms → 890ms)',
-        evidence: ['Trace: 3d1e6b8f21 (890ms)', 'Metric: checkout-service p95_duration'],
-      },
-      {
         id: 'change',
         kind: 'Change Node',
         label: 'Peak Traffic Window (Deploy b91cf3a)',
@@ -291,11 +290,17 @@ export const incidents = {
         evidence: ['Cache metric: 100/100 connections active', 'Log exemplar: 340 requests queued'],
       },
       {
-        id: 'mitigation',
-        kind: 'Mitigation Node',
-        label: 'Raise Redis max_connections + backoff',
-        confidence: 0.88,
-        evidence: ['Living Runbook: RETRO-INC-3891 (88% match)'],
+        id: 'cascade',
+        kind: 'Cascade Node',
+        label: 'Reconnect Storm',
+        causalityToNext: 0.93,
+        evidence: ['Metric: redis-proxy reconnect_rate spike', 'Log exemplar: repeated backoff retries'],
+      },
+      {
+        id: 'symptom',
+        kind: 'Symptom Node',
+        label: 'P95 Latency Spike (210ms → 890ms)',
+        evidence: ['Trace: 3d1e6b8f21 (890ms)', 'Metric: checkout-service p95_duration'],
       },
     ],
 
@@ -426,34 +431,39 @@ export const knowledgeBase = {
     },
   ],
   roi: {
+    downtimeSavedUsd: 142_500,
     nrqlErrorsIntercepted: 450,
     hallucinationsPrevented: 12,
-    resolutionPathsStrengthened: 8,
-    incidentsResolvedAutonomously: 15,
-    downtimePreventedUsd: 15_000_000,
-    mttrReductionPercent: 64,
-    mttrBefore: '2 hours',
-    mttrAfter: '45 sec',
-    sreCapacityReclaimedUsd: 17_200_000,
-    sreCapacityReclaimedPercent: 23,
+    mttrReductionPercent: 82,
   },
 };
 
 export const entityMemory = {
   'checkout-service': {
     entityId: 'checkout-service',
+    tier: 'Production',
+    owner: 'Team Payment',
     lastUpdatedUtc: '14:10 UTC',
     lastUpdatedBy: 'SRE Alex',
     scope: 'Account (Financial-Prod-US)',
     activeThread: {
       incidentId: 'INC-8472',
       title: 'P95 Latency Spike',
+      status: 'In Remediation',
       hoursElapsed: 2,
       stepsExecuted: 14,
     },
     eliminatedHypotheses: [
-      { title: 'Redis Cache', detail: 'Verified healthy at 14:02 UTC. Do not re-query cache layer.' },
-      { title: 'K8s Host Node', detail: 'No CPU throttling observed on host k8s-node-12.' },
+      {
+        title: 'Redis Cache Eviction',
+        testedAt: '18:42 UTC',
+        result: 'Cache hit ratio normal (99.2%).',
+      },
+      {
+        title: 'K8s Node CPU Throttling',
+        testedAt: '18:45 UTC',
+        result: 'CPU utilization <45%.',
+      },
     ],
     standingNotes: [
       'Nightly GC pause occurs 00:00-00:30 UTC. Expected behavior; do NOT page on-call.',
