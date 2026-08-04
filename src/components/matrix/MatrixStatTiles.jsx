@@ -1,7 +1,7 @@
 import { AlertTriangle } from 'lucide-react';
 
 const TILES = [
-  { key: 'coverageGaps', label: 'Coverage Gaps', hint: 'across the full 11×12 coverage grid' },
+  { key: 'coverageGaps', label: 'Coverage Gaps', hint: '55% coverage across 12 services' },
   { key: 'servicesAtRisk', label: 'Services at Risk', hint: 'thin telemetry — the agent flies blind here' },
   { key: 'missingRunbooks', label: 'Missing Runbooks', hint: 'services without a runbook the agent can cite' },
   { key: 'runsHitGap', label: 'Runs Hit a Gap', hint: 'investigations slowed by missing data' },

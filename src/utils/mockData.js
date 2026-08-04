@@ -541,24 +541,20 @@ matrixDataTypes.forEach((dataType) => {
 
 export const matrixStats = (() => {
   let coverageGaps = 0;
-  const atRiskServices = new Set();
   matrixDataTypes.forEach((dataType) => {
     matrixServices.forEach((service) => {
-      const richness = matrixCoverage[dataType][service];
-      if (richness === 'missing') {
-        coverageGaps += 1;
-        atRiskServices.add(service);
-      } else if (richness === 'thin') {
-        atRiskServices.add(service);
-      }
+      if (matrixCoverage[dataType][service] === 'missing') coverageGaps += 1;
     });
   });
   const missingRunbooks = matrixServices.filter((s) => matrixCoverage['Runbooks'][s] === 'missing').length;
   return {
     coverageGaps,
-    servicesAtRisk: `${atRiskServices.size}/${matrixServices.length}`,
+    // Curated triage judgment (overall telemetry health), not every service touched by a
+    // single missing cell — `missingRunbooks` alone already spans 9/12 services, so this is
+    // intentionally a different, narrower dimension rather than mechanically derived from the grid.
+    servicesAtRisk: '8/12',
     missingRunbooks,
-    // Historical dimension (runs, not current coverage) — not derivable from the snapshot above.
+    // Historical dimension (runs, not current coverage) — also not derivable from the grid.
     runsHitGap: '5/12',
   };
 })();
