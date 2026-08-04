@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, AlertTriangle, BookOpen, Settings, Search } from 'lucide-react';
+import { Activity, AlertTriangle, BookOpen, Settings, Search, LayoutGrid } from 'lucide-react';
 import { useAutopilot } from '../../context/AutopilotContext';
 
 const TRIAGE_PREFIXES = ['/autopilot/home', '/autopilot/thread', '/autopilot/workspace'];
@@ -24,6 +24,13 @@ const Header = () => {
       icon: BookOpen,
       to: '/autopilot/knowledge',
       isActive: hash.startsWith('/autopilot/knowledge') || hash.startsWith('/autopilot/memory'),
+    },
+    {
+      id: 'matrix',
+      label: 'Substrate Matrix',
+      icon: LayoutGrid,
+      to: '/substrate/matrix',
+      isActive: hash.startsWith('/substrate'),
     },
     { id: 'configure', label: 'Configure Agent', icon: Settings, to: null, isActive: false },
   ];

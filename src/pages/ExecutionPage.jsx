@@ -29,7 +29,7 @@ const ExecutionPage = () => {
 
       <ValidationCountdown validation={incident.validation} onComplete={() => setValidationComplete(true)} />
 
-      {validationComplete && <RlhfBanner rlhf={incident.rlhf} />}
+      {validationComplete && <RlhfBanner rlhf={incident.rlhf} validation={incident.validation} />}
 
       <div className="flex flex-wrap gap-3">
         <button

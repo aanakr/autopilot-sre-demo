@@ -5,6 +5,7 @@ import WorkspacePage from './pages/WorkspacePage'
 import ExecutionPage from './pages/ExecutionPage'
 import KnowledgePage from './pages/KnowledgePage'
 import MemoryPage from './pages/MemoryPage'
+import SubstrateMatrixPage from './pages/SubstrateMatrixPage'
 import Header from './components/layout/Header'
 import BreadcrumbRibbon from './components/layout/BreadcrumbRibbon'
 
@@ -23,6 +24,7 @@ function App() {
             <Route path="/autopilot/workspace/:incidentId/execution" element={<ExecutionPage />} />
             <Route path="/autopilot/knowledge" element={<KnowledgePage />} />
             <Route path="/autopilot/memory/:entityId" element={<MemoryPage />} />
+            <Route path="/substrate/matrix" element={<SubstrateMatrixPage />} />
           </Routes>
         </main>
       </div>

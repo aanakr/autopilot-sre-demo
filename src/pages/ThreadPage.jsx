@@ -33,7 +33,10 @@ const ThreadPage = () => {
         <AnalysisVersionSelector versions={incident.analysisVersions} />
       </div>
 
-      <SubstrateContextChip syncedWith="#inc-checkout Slack Channel (12s ago)" />
+      <SubstrateContextChip
+        syncedWith="#inc-checkout Slack Channel (12s ago)"
+        onClick={() => navigate('/substrate/matrix')}
+      />
 
       <DataDictionaryTooltip dataDictionary={incident.dataDictionary} />
 

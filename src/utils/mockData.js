@@ -188,9 +188,10 @@ export const incidents = {
       baselineErrorRate: 0.0,
     },
 
+    // Inputs to rlEngine.updateEdgeWeight — the edge this fix directly proves out.
     rlhf: {
-      reward: 0.03,
-      updatedCausalEdgeWeight: 0.91,
+      priorEdgeWeight: 0.89,
+      edgeLabel: 'N+1 Query on sessions-db → DB Pool Exhaustion',
     },
   },
 
@@ -348,8 +349,8 @@ export const incidents = {
     },
 
     rlhf: {
-      reward: 0.04,
-      updatedCausalEdgeWeight: 0.93,
+      priorEdgeWeight: 0.87,
+      edgeLabel: 'Peak Traffic Window → Redis Connection Pool Exhaustion',
     },
   },
 };
@@ -476,3 +477,169 @@ export const defaultMemoryFacts = [
   { id: 'fact-1', scope: 'User', text: `AP-stage refers to agentic-platform in staging, not infra entity.` },
   { id: 'fact-2', scope: 'Account', text: 'Route all critical payment timeouts to #oncall-payments.' },
 ];
+
+/**
+ * Ground Truth / Substrate Matrix (Screen 5 — /substrate/matrix)
+ *
+ * An 11 data-type x 12 microservice coverage grid: every piece of telemetry,
+ * config, and knowledge the agent can reason over, and where it's thin.
+ * `matrixStats` and `matrixCoverage`'s per-cell richness are derived below
+ * from a hand-set list of overrides, not asserted separately, so the KPI
+ * tiles always reflect what the grid actually shows.
+ */
+
+export const matrixDataTypes = [
+  'Metrics', 'Events', 'Logs', 'Traces', 'Code', 'Config',
+  'Runbooks', 'Retros', 'Root causes', 'Tickets', 'Ownership',
+];
+
+export const matrixServices = [
+  'payments-api', 'ledger-svc', 'checkout-api', 'cart-service', 'session-mgr', 'inventory-s',
+  'order-worker', 'shipping-sv', 'search-api', 'rank-ml', 'edu-svc', 'api-gateway',
+];
+
+export const matrixWorkloads = [
+  { id: 'checkout-funnel', label: 'Checkout funnel', subtitle: 'customer purchase path', services: ['checkout-api', 'cart-service', 'session-mgr', 'payments-api'] },
+  { id: 'order-fulfillment', label: 'Order fulfillment', subtitle: 'post-order operations', services: ['order-worker', 'shipping-sv', 'inventory-s', 'ledger-svc'] },
+  { id: 'discovery', label: 'Discovery', subtitle: 'search + recommendations', services: ['search-api', 'rank-ml', 'edu-svc'] },
+  { id: 'platform', label: 'Platform', subtitle: 'shared infra', services: ['api-gateway'] },
+];
+
+// [dataType, service] richness overrides — everything else defaults to 'ok'.
+const RICH_CELLS = [
+  ['Metrics', 'checkout-api'], ['Events', 'checkout-api'], ['Logs', 'checkout-api'],
+  ['Traces', 'checkout-api'], ['Code', 'checkout-api'], ['Metrics', 'payments-api'],
+  ['Retros', 'cart-service'],
+];
+const THIN_CELLS = [
+  ['Events', 'rank-ml'], ['Traces', 'edu-svc'], ['Config', 'rank-ml'],
+  ['Tickets', 'edu-svc'], ['Ownership', 'rank-ml'],
+];
+const MISSING_CELLS = [
+  ['Runbooks', 'ledger-svc'], ['Runbooks', 'checkout-api'], ['Runbooks', 'session-mgr'],
+  ['Runbooks', 'inventory-s'], ['Runbooks', 'order-worker'], ['Runbooks', 'shipping-sv'],
+  ['Runbooks', 'search-api'], ['Runbooks', 'rank-ml'], ['Runbooks', 'edu-svc'],
+  ['Retros', 'session-mgr'], ['Retros', 'inventory-s'], ['Retros', 'order-worker'],
+  ['Retros', 'shipping-sv'], ['Retros', 'search-api'], ['Retros', 'rank-ml'],
+  ['Retros', 'edu-svc'], ['Retros', 'api-gateway'], ['Retros', 'ledger-svc'],
+  ['Code', 'rank-ml'], ['Code', 'edu-svc'],
+];
+
+const cellKey = (dataType, service) => `${dataType}::${service}`;
+const richnessOverrides = new Map();
+RICH_CELLS.forEach(([dt, svc]) => richnessOverrides.set(cellKey(dt, svc), 'rich'));
+THIN_CELLS.forEach(([dt, svc]) => richnessOverrides.set(cellKey(dt, svc), 'thin'));
+MISSING_CELLS.forEach(([dt, svc]) => richnessOverrides.set(cellKey(dt, svc), 'missing'));
+
+export const matrixCoverage = {};
+matrixDataTypes.forEach((dataType) => {
+  matrixCoverage[dataType] = {};
+  matrixServices.forEach((service) => {
+    matrixCoverage[dataType][service] = richnessOverrides.get(cellKey(dataType, service)) ?? 'ok';
+  });
+});
+
+export const matrixStats = (() => {
+  let coverageGaps = 0;
+  const atRiskServices = new Set();
+  matrixDataTypes.forEach((dataType) => {
+    matrixServices.forEach((service) => {
+      const richness = matrixCoverage[dataType][service];
+      if (richness === 'missing') {
+        coverageGaps += 1;
+        atRiskServices.add(service);
+      } else if (richness === 'thin') {
+        atRiskServices.add(service);
+      }
+    });
+  });
+  const missingRunbooks = matrixServices.filter((s) => matrixCoverage['Runbooks'][s] === 'missing').length;
+  return {
+    coverageGaps,
+    servicesAtRisk: `${atRiskServices.size}/${matrixServices.length}`,
+    missingRunbooks,
+    // Historical dimension (runs, not current coverage) — not derivable from the snapshot above.
+    runsHitGap: '5/12',
+  };
+})();
+
+// Agent Runs — one fully-detailed run (linked to INC-8472's real investigation),
+// four lightweight stubs for list-view flavor.
+export const agentRuns = [
+  {
+    id: 'run-inc-8472',
+    incidentId: 'INC-8472',
+    title: 'Checkout p95 spiked 3.4x after deploy',
+    relativeTime: '14 min ago',
+    stepsCount: 7,
+    servicesCount: 3,
+    gapCount: 1,
+    path: [
+      { dataType: 'Metrics', service: 'checkout-api', action: 'p95 on checkout-api jumped at 14:08 UTC', detail: 'checkout · metrics · metric: checkout.latency.p95' },
+      { dataType: 'Traces', service: 'checkout-api', action: 'opened traces for slow requests', detail: 'checkout · traces · trace: 4a7f2b1-23ff' },
+      { dataType: 'Logs', service: 'checkout-api', action: 'correlated with N+1 pattern in ORM logs', detail: 'checkout · logs · log: query >140 per request' },
+      { dataType: 'Code', service: 'checkout-api', action: 'located helper in recent PR', detail: 'checkout · code · commit: sessions.py' },
+      { dataType: 'Metrics', service: 'payments-api', action: 'ruled out payments as source', detail: 'payments · metrics · metric: payments.latency.p95', ruledOut: true },
+      { dataType: 'Runbooks', service: 'checkout-api', action: 'searched runbook for N+1 pattern', detail: 'checkout · runbooks (no runbook found)', gap: true },
+      { dataType: 'Retros', service: 'cart-service', action: 'found prior retro with same root cause', detail: 'cart · retros · retro: INC-4512 cart', matched: true },
+    ],
+  },
+  { id: 'run-2', title: 'Order worker queue backlog after deploy', relativeTime: '2 hours ago', stepsCount: 5, servicesCount: 2, gapCount: 0 },
+  { id: 'run-3', title: 'Search-api latency drifted after index rebuild', relativeTime: '6 hours ago', stepsCount: 6, servicesCount: 1, gapCount: 1 },
+  { id: 'run-4', title: 'TLS cert auto-renewed on api-gateway', relativeTime: '1 day ago', stepsCount: 3, servicesCount: 1, gapCount: 0 },
+  { id: 'run-5', title: 'Ledger reconciliation retry storm', relativeTime: '2 days ago', stepsCount: 4, servicesCount: 2, gapCount: 1 },
+];
+
+// Runbooks-cell knowledge drawer content, keyed by service — checkout-api is the
+// specifically-authored gap (matches the demo); other services fall back to a
+// generic gap description in RunbookGapDrawer.
+export const runbookGapDetail = {
+  'checkout-api': {
+    team: 'checkout',
+    source: 'Wiki / Git-backed markdown',
+    retention: 'versioned',
+    freshness: '6 min ago',
+    completeness: '45%',
+    samplesPerDay: '4,800',
+    rto: 'Knowledge',
+    reference: {
+      badge: 'GAP',
+      kicker: 'REFERENCE · OPTIMIZED PATTERN',
+      title: 'Runbooks linked to entities + versioned in-repo',
+      body: 'Thin coverage today. The reference shows the upgrade path. The agent finds a runbook before falling back to first-principles reasoning. Keep them next to the code, and link them to the entity via a tag.',
+      tags: ['Entity tags', 'Repo-backed markdown', 'Runbook automation'],
+      checklist: [
+        'Runbook tag on every entity',
+        'Runbooks versioned with the code',
+        'Symptoms expressed as NRQL predicates',
+        'Each step links to another runbook or an automation action',
+      ],
+    },
+    yaml: `title: N+1 Query Remediation — checkout-api
+entity: checkout-api
+owner: team-checkout
+symptoms:
+  - nrql: SELECT average(duration) FROM Transaction WHERE appName = 'checkout-api' SINCE 5 minutes ago
+    threshold: "> 500ms"
+steps:
+  - id: bump-pool
+    run: kubectl scale statefulset sessions-db --replicas=5
+  - id: drain
+    run: kubectl drain node --ignore-daemonsets
+  - id: build-index
+    run: CREATE INDEX CONCURRENTLY idx_sessions_user_sess ON sessions(user_id);`,
+  },
+};
+
+export const groundTruthSdk = {
+  quickstart: `import { GroundTruthClient } from '@newrelic/ground-truth-sdk';
+
+const client = new GroundTruthClient({ apiKey: process.env.NEW_RELIC_API_KEY });
+const coverage = await client.coverage.get({ service: 'checkout-api' });`,
+  proofs: `const proof = await client.proofs.getCausalChain({ incidentId: 'INC-8472' });
+
+console.log(proof.edges.map((e) => \`\${e.from} -> \${e.to} (\${e.weight})\`));`,
+  eval: `const result = await client.eval.replay({ runId: 'run-inc-8472' });
+
+console.log(\`Accuracy: \${result.accuracy}, Hallucination rate: \${result.hallucinationRate}\`);`,
+};

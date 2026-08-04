@@ -4,11 +4,17 @@ import { useAutopilot } from '../../context/AutopilotContext';
  * Ambient badge showing the active account and guardrail status.
  * Reused on the Home and Thread screens.
  */
-const SubstrateContextChip = ({ syncedWith }) => {
+const SubstrateContextChip = ({ syncedWith, onClick }) => {
   const { account } = useAutopilot();
 
   return (
-    <div className="inline-flex items-center gap-2 text-xs font-mono bg-obsidian-800 border border-obsidian-600 rounded-full px-3 py-1.5">
+    <div
+      onClick={onClick}
+      title={onClick ? 'Inspect affected services in the Substrate Matrix' : undefined}
+      className={`inline-flex items-center gap-2 text-xs font-mono bg-obsidian-800 border border-obsidian-600 rounded-full px-3 py-1.5 ${
+        onClick ? 'cursor-pointer hover:border-electric-cyan transition-colors' : ''
+      }`}
+    >
       <span className="w-1.5 h-1.5 rounded-full bg-electric-green animate-pulse-slow" />
       {syncedWith ? (
         <span className="text-gray-300">
