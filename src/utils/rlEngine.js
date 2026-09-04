@@ -93,3 +93,13 @@ export const RL_ENGINE_CONSTANTS = {
   LEARNING_RATE,
   DISCOUNT_FACTOR,
 };
+
+/**
+ * SRE-veto score decay (Scenario 4). Scripted to the demo's exact figures
+ * rather than run through updateEdgeWeight — a human veto is a hard
+ * override signal, not a graded reward, so it doesn't fit the TD-learning
+ * formula above (which never lands on the 0.88→0.45 the demo calls for).
+ */
+export function applyVetoDecay({ decayedScore }) {
+  return clamp01(parseFloat(decayedScore.toFixed(2)));
+}

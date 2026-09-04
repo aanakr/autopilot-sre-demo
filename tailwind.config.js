@@ -6,35 +6,16 @@ export default {
   ],
   theme: {
     extend: {
-      colors: {
-        obsidian: {
-          900: '#0B0E14', // Primary canvas background
-          800: '#131722', // Panels & cards
-          700: '#1F2430', // Borders & strokes
-          600: '#2A3042', // Hover states
-          500: '#3A4155', // Subtle borders
-        },
-        electric: {
-          green: '#10B981',  // Verified telemetry / SLOs / success
-          glow: '#00F0FF',   // High-emphasis verified glow accent
-          cyan: '#06B6D4',   // AI signals / links / highlights
-        },
-        danger: '#EF4444',  // Critical alerts
-        warning: '#F59E0B', // Pending approvals
-        success: '#10B981', // Success states
-        muted: '#6B7280',   // Secondary text
-        knowledge: {
-          emerald: '#34D399', // Knowledge Hub primary accent (distinct from Triage's electric-green)
-          purple: '#A78BFA',  // Knowledge Hub secondary accent (distinct from Triage's electric-cyan)
-        },
-      },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Courier New', 'monospace'],
+        mono: ['JetBrains Mono', 'Fira Code', 'Courier New', 'monospace'],
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'spin-slow': 'spin 2s linear infinite',
+      },
+      boxShadow: {
+        panel: '0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 1px rgb(15 23 42 / 0.06)',
       },
     },
   },

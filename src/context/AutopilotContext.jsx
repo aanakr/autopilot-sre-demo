@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState } from 'react';
-import { account, currentUser, defaultMemoryFacts } from '../utils/mockData';
+import { account, currentUser } from '../utils/mockData';
 
 const AutopilotContext = createContext();
 
@@ -13,24 +13,13 @@ export const useAutopilot = () => {
 };
 
 export const AutopilotProvider = ({ children }) => {
-  const [memoryFacts, setMemoryFacts] = useState(defaultMemoryFacts);
-  const [activeIncidentId, setActiveIncidentId] = useState('INC-8472');
-
-  const addMemoryFact = (scope, text) => {
-    if (!text.trim()) return;
-    setMemoryFacts((prev) => [
-      ...prev,
-      { id: `fact-${prev.length + 1}-${Date.now()}`, scope, text: text.trim() },
-    ]);
-  };
+  const [activeScenarioId, setActiveScenarioId] = useState('S1');
 
   const value = {
     account,
     currentUser,
-    memoryFacts,
-    addMemoryFact,
-    activeIncidentId,
-    setActiveIncidentId,
+    activeScenarioId,
+    setActiveScenarioId,
   };
 
   return (

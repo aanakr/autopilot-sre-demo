@@ -18,4 +18,10 @@ module.exports = {
     ],
     'react/prop-types': 'off',
   },
+  overrides: [
+    {
+      files: ['tests/**/*.js'],
+      env: { node: true, browser: false },
+    },
+  ],
 }

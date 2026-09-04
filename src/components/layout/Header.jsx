@@ -1,101 +1,88 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, AlertTriangle, BookOpen, Settings, Search, LayoutGrid } from 'lucide-react';
+import { Activity, LayoutGrid, Crosshair, ChevronDown, Settings } from 'lucide-react';
 import { useAutopilot } from '../../context/AutopilotContext';
-
-const TRIAGE_PREFIXES = ['/autopilot/home', '/autopilot/thread', '/autopilot/workspace'];
+import { getScenario } from '../../utils/scenarios';
 
 const Header = () => {
   const location = useLocation();
-  const { account, currentUser, activeIncidentId } = useAutopilot();
+  const { account, currentUser, activeScenarioId } = useAutopilot();
   const hash = location.hash.replace('#', '') || location.pathname;
+  const scenario = getScenario(activeScenarioId);
 
   const tabs = [
     {
-      id: 'incidents',
-      label: 'Active Incidents',
-      icon: AlertTriangle,
-      to: `/autopilot/thread/${activeIncidentId}`,
-      badge: 1,
-      isActive: TRIAGE_PREFIXES.some((p) => hash.startsWith(p)),
-    },
-    {
-      id: 'knowledge',
-      label: 'Organizational Knowledge',
-      icon: BookOpen,
-      to: '/autopilot/knowledge',
-      isActive: hash.startsWith('/autopilot/knowledge') || hash.startsWith('/autopilot/memory'),
-    },
-    {
-      id: 'matrix',
-      label: 'Substrate Matrix',
+      id: 'ground-truth',
+      label: 'Substrate Ground Truth Matrix',
       icon: LayoutGrid,
-      to: '/substrate/matrix',
-      isActive: hash.startsWith('/substrate'),
+      to: '/autopilot/ground-truth',
+      isActive: hash.startsWith('/autopilot/ground-truth'),
     },
-    { id: 'configure', label: 'Configure Agent', icon: Settings, to: null, isActive: false },
-  ];
+    scenario.hasWorkspace && {
+      id: 'workspace',
+      label: `Coach UI — ${scenario.incidentId}`,
+      icon: Crosshair,
+      to: `/autopilot/workspace/${scenario.incidentId}`,
+      isActive: hash.startsWith('/autopilot/workspace'),
+    },
+  ].filter(Boolean);
 
   return (
-    <header className="bg-obsidian-800 border-b border-obsidian-700 sticky top-0 z-50">
+    <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/autopilot/home" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <Activity className="w-8 h-8 text-electric-green" />
+          <Link to="/autopilot/ground-truth" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <Activity className="w-8 h-8 text-emerald-500" />
             <div>
               <h1 className="text-xl font-bold text-gradient leading-tight">New Relic Autopilot</h1>
-              <p className="text-xs text-muted leading-tight">Substrate-Powered SRE Agent</p>
+              <p className="text-xs text-slate-500 leading-tight">Substrate-Powered SRE Agent</p>
             </div>
           </Link>
 
-          <div className="hidden md:flex items-center gap-2 flex-1 max-w-md mx-8">
-            <div className="flex items-center gap-2 w-full bg-obsidian-700 border border-obsidian-600 rounded-md px-3 py-1.5">
-              <Search className="w-4 h-4 text-muted" />
-              <span className="text-sm text-muted">Search...</span>
-            </div>
+          <div className="hidden md:flex items-center gap-1.5 text-xs font-mono bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full px-3 py-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-slow" />
+            Substrate Context: Active | Guardrails: {account.guardrails}
           </div>
 
           <div className="flex items-center gap-4 text-sm">
-            <span className="text-muted hidden sm:inline">Account:</span>
-            <span className="font-medium text-gray-200 hidden sm:inline">{account.name}</span>
-            <div className="flex items-center gap-2 pl-4 border-l border-obsidian-600">
-              <div className="w-2 h-2 rounded-full bg-electric-green animate-pulse-slow" />
-              <span className="text-gray-200 font-medium">
-                {currentUser.name} <span className="text-muted">({currentUser.role})</span>
+            <div className="hidden sm:flex items-center gap-1 text-slate-600 border border-slate-200 rounded-md px-2.5 py-1.5 cursor-default" title="Account selector (single account in this MVP)">
+              <span className="text-slate-400">Account:</span>
+              <span className="font-medium text-slate-800">{account.name}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            </div>
+            <div className="flex items-center gap-2 pl-4 border-l border-slate-200">
+              <div className="w-7 h-7 rounded-full bg-cyan-500 text-white text-xs font-semibold flex items-center justify-center">
+                {currentUser.name[0]}
+              </div>
+              <span className="text-slate-800 font-medium">
+                {currentUser.name} <span className="text-slate-400">({currentUser.role})</span>
               </span>
             </div>
           </div>
         </div>
 
-        <nav className="flex items-center gap-1 h-11 -mb-px">
-          {tabs.map(({ id, label, icon: Icon, to, badge, isActive }) => {
-            const className = `flex items-center gap-2 px-4 h-full text-sm font-medium border-b-2 transition-colors ${
-              isActive
-                ? 'border-electric-green text-electric-green'
-                : 'border-transparent text-muted hover:text-gray-200'
-            } ${!to ? 'cursor-default opacity-60' : ''}`;
-
-            const content = (
-              <>
+        <nav className="flex items-center justify-between h-11 -mb-px border-t border-slate-100">
+          <div className="flex items-center gap-1">
+            {tabs.map(({ id, label, icon: Icon, to, isActive }) => (
+              <Link
+                key={id}
+                to={to}
+                className={`flex items-center gap-2 px-4 h-11 text-sm font-medium border-b-2 transition-colors ${
+                  isActive
+                    ? 'border-cyan-500 text-cyan-700'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
                 <Icon className="w-4 h-4" />
                 {label}
-                {badge != null && (
-                  <span className="text-xs bg-obsidian-700 text-gray-300 rounded-full px-1.5 py-0.5">
-                    {badge}
-                  </span>
-                )}
-              </>
-            );
-
-            return to ? (
-              <Link key={id} to={to} className={className}>
-                {content}
               </Link>
-            ) : (
-              <span key={id} className={className} title="Not available in this MVP">
-                {content}
-              </span>
-            );
-          })}
+            ))}
+          </div>
+          <span
+            className="flex items-center gap-2 px-4 h-11 text-sm font-medium text-slate-400 cursor-default"
+            title="Not available in this MVP"
+          >
+            <Settings className="w-4 h-4" /> Configure Agent
+          </span>
         </nav>
       </div>
     </header>

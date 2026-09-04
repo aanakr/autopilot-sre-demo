@@ -1,30 +1,31 @@
-import { Link, useLocation } from 'react-router-dom';
-import { MapPin } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 import { useAutopilot } from '../../context/AutopilotContext';
-import { incidents } from '../../utils/mockData';
+import { getScenario } from '../../utils/scenarios';
 
 const BreadcrumbRibbon = () => {
   const location = useLocation();
-  const { activeIncidentId } = useAutopilot();
+  const { account, activeScenarioId } = useAutopilot();
   const hash = location.hash.replace('#', '') || location.pathname;
-  const incident = incidents[activeIncidentId];
+  const scenario = getScenario(activeScenarioId);
 
-  const onHome = hash === '/autopilot/home' || hash === '/';
-  const onActiveThread = hash === `/autopilot/thread/${activeIncidentId}`;
-
-  if (!incident || onHome || onActiveThread) return null;
+  const onWorkspace = hash.startsWith('/autopilot/workspace');
+  const trail = ['Accounts', account.name, 'Autopilot'];
+  if (onWorkspace && scenario.hasWorkspace) {
+    trail.push(scenario.incidentId);
+  } else {
+    trail.push('Knowledge Gap Map');
+  }
 
   return (
-    <div className="bg-obsidian-800/80 border-b border-obsidian-700 px-4 py-1.5">
-      <div className="container mx-auto flex items-center gap-2 text-xs">
-        <MapPin className="w-3.5 h-3.5 text-electric-cyan flex-shrink-0" />
-        <span className="text-muted">Active Incident:</span>
-        <Link
-          to={`/autopilot/thread/${incident.id}`}
-          className="text-electric-cyan hover:text-electric-green transition-colors font-medium"
-        >
-          {incident.id} — {incident.title}
-        </Link>
+    <div className="bg-slate-50 border-b border-slate-200 px-4 py-1.5">
+      <div className="container mx-auto flex items-center gap-1.5 text-xs text-slate-500">
+        {trail.map((crumb, i) => (
+          <span key={crumb} className="flex items-center gap-1.5">
+            {i > 0 && <ChevronRight className="w-3 h-3 text-slate-300" />}
+            <span className={i === trail.length - 1 ? 'text-slate-700 font-medium' : ''}>{crumb}</span>
+          </span>
+        ))}
       </div>
     </div>
   );

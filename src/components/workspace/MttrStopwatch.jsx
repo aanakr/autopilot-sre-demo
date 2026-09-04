@@ -20,9 +20,9 @@ const MttrStopwatch = ({ detectedMinutesAgo }) => {
   }, [detectedMinutesAgo]);
 
   return (
-    <div className="inline-flex items-center gap-1.5 text-xs font-mono bg-obsidian-900 border border-obsidian-600 rounded px-2 py-1 text-gray-300">
-      <Timer className="w-3.5 h-3.5 text-warning" />
-      MTTR: <span className="text-warning">{format(elapsedSeconds)}</span>
+    <div className="inline-flex items-center gap-1.5 text-xs font-mono bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200">
+      <Timer className="w-3.5 h-3.5 text-amber-400" />
+      MTTR: <span className="text-amber-400">{format(elapsedSeconds)}</span>
     </div>
   );
 };

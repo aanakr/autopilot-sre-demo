@@ -1,46 +1,50 @@
-const RemediationDiffPanel = ({ diff, options, autoMonitor, onAutoMonitorChange, selectedOptionId }) => (
+import DataDictionaryChip from './DataDictionaryChip';
+
+const RemediationDiffPanel = ({ dataDictionary, diff, options, selectedOptionId }) => (
   <div className="p-4 space-y-6">
+    {dataDictionary && <DataDictionaryChip dataDictionary={dataDictionary} />}
+
     <div>
-      <h3 className="text-xs font-semibold text-muted uppercase tracking-wide mb-3">Proposed Fix</h3>
-      <pre className="font-mono text-xs bg-obsidian-900 border border-obsidian-600 rounded p-3 overflow-x-auto">
-        {diff.lines.map((line, i) => (
-          <div key={i} className="text-electric-green">
-            + {line.text}
-          </div>
-        ))}
-      </pre>
+      <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+        {diff.currentLabel ?? 'Current'} vs. {diff.proposedLabel ?? 'Proposed Fix'}
+      </h3>
+      <div className="grid grid-cols-2 gap-2">
+        <pre className="font-mono text-[11px] bg-slate-50 border border-slate-200 rounded p-2.5 overflow-x-auto text-slate-400 leading-relaxed">
+          {diff.currentLines?.map((line, i) => <div key={i}>{line}</div>)}
+        </pre>
+        <pre className="font-mono text-[11px] bg-emerald-50 border border-emerald-200 rounded p-2.5 overflow-x-auto leading-relaxed">
+          {diff.lines.map((line, i) => (
+            <div key={i} className="text-emerald-700">
+              + {line.text}
+            </div>
+          ))}
+        </pre>
+      </div>
     </div>
 
     <div>
-      <h3 className="text-xs font-semibold text-muted uppercase tracking-wide mb-3">Substrate RLHF Scores</h3>
+      <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Substrate Confidence Scores</h3>
       <div className="space-y-2">
         {options.map((option) => (
           <div
             key={option.id}
             className={`flex items-center justify-between text-sm rounded px-3 py-2 border ${
               option.id === selectedOptionId
-                ? 'border-electric-green bg-electric-green/5'
-                : 'border-obsidian-600 bg-obsidian-900'
+                ? 'border-emerald-300 bg-emerald-50'
+                : 'border-slate-200 bg-slate-50'
             }`}
           >
-            <span className="text-gray-300">{option.label}</span>
-            <span className={`font-mono font-bold ${option.id === selectedOptionId ? 'text-electric-green' : 'text-muted'}`}>
+            <span className="text-slate-700">
+              {option.label}
+              {option.note && <span className="text-xs text-slate-400 ml-2">({option.note})</span>}
+            </span>
+            <span className={`font-mono font-bold ${option.id === selectedOptionId ? 'text-emerald-600' : 'text-slate-400'}`}>
               {option.score.toFixed(2)}
             </span>
           </div>
         ))}
       </div>
     </div>
-
-    <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
-      <input
-        type="checkbox"
-        checked={autoMonitor}
-        onChange={(e) => onAutoMonitorChange(e.target.checked)}
-        className="w-4 h-4 rounded accent-electric-green"
-      />
-      Auto-Monitor Rollback
-    </label>
   </div>
 );
 

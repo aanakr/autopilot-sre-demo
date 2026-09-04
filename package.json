@@ -2,7 +2,7 @@
   "name": "autopilot-sre-demo",
   "version": "1.0.0",
   "type": "module",
-  "description": "New Relic Autopilot SRE Agent - September 2026 MVP",
+  "description": "New Relic Autopilot SRE Agent - February 2027 MVP",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -14,8 +14,6 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0",
-    "reactflow": "^11.10.4",
-    "recharts": "^2.12.0",
     "lucide-react": "^0.344.0"
   },
   "devDependencies": {
